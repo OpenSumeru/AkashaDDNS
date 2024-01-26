@@ -1,5 +1,5 @@
 ifeq ($(OS),Windows_NT)
-	GCC = g++ -std=c++20 -static -Iinclude -O2 -ID:\Project\C++\Compiler\MinGW\include
+	GCC = g++ -std=c++20 -static -Iinclude -O2
 	
 	Link = -lssl \
 		   -lcrypto \
