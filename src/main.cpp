@@ -36,10 +36,12 @@ int main(size_t argc, char** argv)
         auto&& rax = getIPv4();
         if (rax != ipAddress)
         {
+            std::cout << "Changing from " << ipAddress << " to " << rax << std::endl;
             auto&& reciveIp = putRecordId(client, zoneId, dnsRecordId, rax, dnsName);
             if (reciveIp == rax)
             {
                 ipAddress = rax;
+                std::cout << "Local IP: " << ipAddress << std::endl;
             }
         }
         std::this_thread::sleep_for(std::chrono::seconds(100));
