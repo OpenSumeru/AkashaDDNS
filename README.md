@@ -1,3 +1,8 @@
+# AkashaDDNS-rust
+A simple DDNS updater using cloudflare API,forked from [this](https://github.com/OpenSumeru/AkashaDDNS) and RIIR!
+
+Below is the raw README
+
 # AkashaDDNS
 A simple DDNS updater using cloudflare API
 
