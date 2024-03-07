@@ -1,7 +1,24 @@
 # AkashaDDNS-rust
 A simple DDNS updater using cloudflare API,forked from [this](https://github.com/OpenSumeru/AkashaDDNS) and RIIR!
 
-Below is the raw README
+
+> The rust version did **NO TEST!**, may the rust version is not able to run(
+
+## Build&Run
+
+just as usual, we can use cargo to build&run easily.
+
+```
+cargo build --release
+```
+
+```
+cargo run --release
+```
+
+
+> Below is the raw README
+
 
 # AkashaDDNS
 A simple DDNS updater using cloudflare API
