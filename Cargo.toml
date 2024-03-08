@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = ["rust"]
+
+[profile.release]
+lto = true
+strip = true
