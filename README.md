@@ -22,17 +22,17 @@ API Key **must include** the accessibility to read and edit the zone. API-Key-Ty
 {
     "Headers":
     {
-        "API-Key-Type":"Zone",
+        "API-Key-Type":"Zone", //Auth if your api key has all permission
         "API-Key":"123",
         "Email":"123"
     },
     "Zone":
     {
-        "Name":"123"
+        "Name":"example.com"
     },
     "Target":
     {
-        "DNS-Name":"123"
+        "DNS-Name":"eg1.example.com"
     }
 }
 ```
