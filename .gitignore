@@ -1,9 +1,3 @@
 
 *.json
 *.o
-
-
-# Added by cargo
-
-
-/rust/target
