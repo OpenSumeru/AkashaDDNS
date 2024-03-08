@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+    
+      - name: build
+        run: cargo build --release --target=x86_64-unknown-linux-gnu
+  
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+    
+      - name: build
+        run: cargo build --release --target=x86_64-pc-windows-msvc
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            /rust/target/x86_64-unknown-linux-gnu/release/AkashaDDNS-rust
+            /rust/target/x86_64-pc-windows-msvc/release/AkashaDDNS-rust.exe
+            
