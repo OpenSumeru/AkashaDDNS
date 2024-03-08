@@ -35,6 +35,9 @@ jobs:
     
       - name: build rust
         run: cargo build --release --target=x86_64-pc-windows-msvc
+
+      - name: install openssl
+        run: vcpkg install openssl
       - name: build cpp
         run: make AkashaDDNS
 
