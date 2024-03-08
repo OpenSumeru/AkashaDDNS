@@ -5,6 +5,6 @@ jobs:
   AkashaDDNS-Linux-Release:
     runs-on: ubuntu-latest
     steps:
-      - run: vcpkg install openssl
+      - run: ls -h -a
       - run: make AkashaDDNS
 
