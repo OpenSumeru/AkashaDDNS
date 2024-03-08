@@ -28,11 +28,11 @@ API Key **must include** the accessibility to read and edit the zone. API-Key-Ty
     },
     "Zone":
     {
-        "Name":"example.com"
+        "Name":"123"
     },
     "Target":
     {
-        "DNS-Name":"eg1.example.com"
+        "DNS-Name":"123"
     }
 }
 ```
