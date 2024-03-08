@@ -28,10 +28,15 @@ Json readFileToJson(const std::string& filePath)
     return result;
 }
 
-httplib::Result safeGet(httplib::Client& client, std::string path, std::vector<int> accept)
+std::optional<httplib::Result> safeGet(httplib::Client& client, std::string path, std::vector<int> accept)
 {
-    auto result = client.Get(path);
+    auto&& result = client.Get(path);
     
+    if (result.error() != httplib::Error::Success)
+    {
+        return std::nullopt;
+    }
+
     for (auto rax : accept)
     {
         if (result->status == rax)
@@ -41,13 +46,18 @@ httplib::Result safeGet(httplib::Client& client, std::string path, std::vector<i
     }
 
     std::cout << "Error: " << result->reason << "\nError Message: " << result->body << std::endl;
-    return httplib::Result();
+    return std::nullopt;
 }
 
-httplib::Result safePut(httplib::Client& client, std::string path, std::string text, std::string type, std::vector<int> accept)
+std::optional<httplib::Result> safePut(httplib::Client& client, std::string path, std::string text, std::string type, std::vector<int> accept)
 {
-    auto result = client.Put(path, text, type);
+    auto&& result = client.Put(path, text, type);
     
+    if (result.error() != httplib::Error::Success)
+    {
+        return std::nullopt;
+    }
+
     for (auto rax : accept)
     {
         if (result->status == rax)
@@ -57,5 +67,5 @@ httplib::Result safePut(httplib::Client& client, std::string path, std::string t
     }
 
     std::cout << "Error: " << result->reason << "\nError Message: " << result->body << std::endl;
-    return httplib::Result();
+    return std::nullopt;
 }

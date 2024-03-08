@@ -8,6 +8,7 @@
 #include <iterator>
 #include <memory>
 #include <chrono>
+#include <optional>
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "httplib.h"
@@ -23,8 +24,8 @@ std::string readFileToString(const std::string& filePath);
 
 Json readFileToJson(const std::string& filePath);
 
-httplib::Result safeGet(httplib::Client& client, std::string path, std::vector<int> accept = {StatusCode::OK_200});
+std::optional<httplib::Result> safeGet(httplib::Client& client, std::string path, std::vector<int> accept = {StatusCode::OK_200});
 
-httplib::Result safePut(httplib::Client& client, std::string path, std::string text, std::string type, std::vector<int> accept = {StatusCode::OK_200});
+std::optional<httplib::Result> safePut(httplib::Client& client, std::string path, std::string text, std::string type, std::vector<int> accept = {StatusCode::OK_200});
 
 #endif

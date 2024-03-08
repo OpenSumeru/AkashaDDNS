@@ -7,9 +7,13 @@ Json getResult(httplib::Client& client, std::string path, std::string pathHead)
     {
         pathStatic = pathHead;
     }
-    auto response = safeGet(client, pathStatic + path)->body;
+    auto response = safeGet(client, pathStatic + path);
+    if (!response.has_value())
+    {
+        return Json::array{false};
+    }
     std::string error;
-    Json result = Json::parse(response, error);
+    Json result = Json::parse(response.value()->body, error);
     if (error.length() > 0)
     {
         std::cout << "Error: " << error << std::endl;
@@ -36,9 +40,13 @@ Json putResult(httplib::Client& client, std::string path, std::string text, std:
     {
         pathStatic = pathHead;
     }
-    auto response = safePut(client, pathStatic + path, text, type)->body;
+    auto response = safePut(client, pathStatic + path, text, type);
+    if (!response.has_value())
+    {
+        return Json::array{false};
+    }
     std::string error;
-    Json result = Json::parse(response, error);
+    Json result = Json::parse(response.value()->body, error);
     if (error.length() > 0)
     {
         std::cout << "Error: " << error << std::endl;
