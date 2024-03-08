@@ -1,20 +1,25 @@
 use reqwest::{header::HeaderMap, Client, ClientBuilder};
 use serde_json::Value;
 
+const PATH_STATIC: &str = "https://api.cloudflare.com/client/v4";
+
 pub async fn get_result(
     client: &Client,
     path: &str,
-    path_head: Option<&str>,
+    // path_head: Option<&str>,
 ) -> crate::Result<Value> {
-    let path_static = path_head.unwrap_or("/client/v4");
     let mut result = client
-        .get(format!("{}{}", path_static, path))
+        .get(format!("{}{}", PATH_STATIC, path))
         .send()
         .await?
         .json::<Value>()
         .await?;
     for rax in result["messages"].as_array().unwrap() {
-        println!("Code: {}; Message: {}", rax["code"], rax["message"]);
+        println!(
+            "Code: {}; Message: {}",
+            rax["code"].as_number().unwrap(),
+            rax["message"].as_str().unwrap()
+        );
     }
     if result["success"].as_bool().is_some_and(|b| b) {
         return Ok(result["result"].take());
@@ -22,26 +27,23 @@ pub async fn get_result(
     for rax in result["errors"].as_array().unwrap() {
         eprintln!("Error: {}", rax)
     }
-    Ok(Value::Bool(false))
+    panic!()
 }
 
-pub async fn put_result(
-    client: &Client,
-    path: &str,
-    text: String,
-    // r#type: &str,
-    path_head: Option<&str>,
-) -> crate::Result<Value> {
-    let path_static = path_head.unwrap_or("/client/v4");
+pub async fn put_result(client: &Client, path: &str, text: String) -> crate::Result<Value> {
     let mut result = client
-        .put(format!("{}{}", path_static, path))
+        .put(format!("{}{}", PATH_STATIC, path))
         .body(text)
         .send()
         .await?
         .json::<Value>()
         .await?;
     for rax in result["messages"].as_array().unwrap() {
-        println!("Code: {}; Message: {}", rax["code"], rax["message"]);
+        println!(
+            "Code: {}; Message: {}",
+            rax["code"].as_str().unwrap(),
+            rax["message"].as_str().unwrap()
+        );
     }
     if result["success"].as_bool().is_some_and(|b| b) {
         return Ok(result["result"].take());
@@ -49,7 +51,7 @@ pub async fn put_result(
     for rax in result["errors"].as_array().unwrap() {
         eprintln!("Error: {}", rax)
     }
-    Ok(Value::Bool(false))
+    panic!()
 }
 
 pub async fn verify_api(config: &Value) -> crate::Result<Client> {
@@ -59,50 +61,56 @@ pub async fn verify_api(config: &Value) -> crate::Result<Client> {
     config["API-Key-Type"].string_value()=="Auth"?config["API-Key"].string_value():"Bearer "+config["API-Key"].string_value()}
      */
     let mut header = HeaderMap::new();
-    header.insert("X-Auth-Email", config["Email"].to_string().parse()?);
+    header.insert("X-Auth-Email", config["Email"].as_str().unwrap().parse()?);
     if config["API-Key-Type"] == "Auth" {
-        header.insert("X-Auth-Key", config["API-Key"].to_string().parse()?);
+        header.insert("X-Auth-Key", config["API-Key"].as_str().unwrap().parse()?);
     } else {
         header.insert(
             "Authorization",
-            format!("Bearer {}", config["API-Key"]).parse()?,
+            format!("Bearer {}", config["API-Key"].as_str().unwrap()).parse()?,
         );
     };
 
-    Ok(ClientBuilder::new().default_headers(header).build()?)
+    let client = ClientBuilder::new().default_headers(header).build()?;
+    get_result(&client, "/user/tokens/verify").await?;
+    Ok(client)
 }
 
 pub async fn find_zone_id(client: &Client, config: &Value) -> crate::Result<String> {
-    if !config["ID"].to_string().is_empty() {
-        return Ok(config["ID"].to_string());
-    }
-    for rax in get_result(client, "/zones", None)
-        .await?
-        .as_array()
-        .unwrap()
-    {
-        if rax["name"] == config["Name"] {
-            return Ok(config["ID"].to_string());
-        } else if rax.as_bool().is_some_and(|b| !b) {
-            break;
-        }
+    let id = config["ID"]
+        .as_str()
+        .map(|s| s.to_owned())
+        .unwrap_or_default();
+
+    if !id.is_empty() {
+        return Ok(id);
     }
 
-    panic!("Find Zone ID Error: Zone {} not found", config["Name"]);
+    let json = get_result(client, "/zones").await?;
+    let json = json.as_array().unwrap();
+
+    let rax = json
+        .iter()
+        .find(|rax| rax["name"] == config["Name"])
+        .unwrap_or_else(|| {
+            panic!(
+                "Find Zone ID Error: Zone {} not found",
+                config["Name"].as_str().unwrap()
+            )
+        });
+
+    Ok(rax["id"].as_str().unwrap().to_owned())
 }
 
 pub async fn find_record_id(client: &Client, zond_id: &str, name: &str) -> crate::Result<String> {
-    let json = get_result(client, &format!("/zones/{}/dns_records", zond_id), None).await?;
+    let json = get_result(client, &format!("/zones/{}/dns_records", zond_id)).await?;
+    let json = json.as_array().unwrap();
 
-    for rax in json.as_array().unwrap() {
-        if rax["name"] == name {
-            return Ok(rax["id"].to_string());
-        } else if rax.as_bool().is_some_and(|b| !b) {
-            break;
-        }
-    }
-
-    panic!("DNS Record ID Error: DNS Record {} not found", name);
+    let rax = json
+        .iter()
+        .find(|rax| rax["name"] == name)
+        .unwrap_or_else(|| panic!("DNS Record ID Error: DNS Record {} not found", name));
+    Ok(rax["id"].as_str().unwrap().to_owned())
 }
 
 pub async fn put_record_id(
@@ -117,15 +125,12 @@ pub async fn put_record_id(
         "name": name,
         "type": "A",
     });
-    let json = put_result(
-        client,
-        &format!("/zones/{}/dns_records/{}", zond_id, dns_record_id),
-        content.to_string(),
-        None,
-    )
-    .await?;
+
+    let path = format!("/zones/{}/dns_records/{}", zond_id, dns_record_id);
+    let json = put_result(client, &path, content.to_string()).await?;
+
     if json["name"] == name {
-        return Ok(json["content"].to_string());
+        return Ok(json["content"].as_str().unwrap().to_owned());
     }
     eprintln!("Put DNS Record Error");
     Ok(String::new())

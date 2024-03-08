@@ -3,7 +3,5 @@
 *.o
 
 
-# Added by cargo
-
-
-/rust/target
+/target
+Cargo.lock
