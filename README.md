@@ -60,3 +60,7 @@ OpenSSL (3.0+)
 - [ ] OpenSSL (3.0+) **You should install it** follow the instruction in cpp-httplib
 - [x] [cpp-httplib](https://github.com/yhirose/cpp-httplib)
 - [x] [json11](https://github.com/dropbox/json11)
+
+## Rust Build
+
+[AkashaDDNS-rust](/rust/README.md)
