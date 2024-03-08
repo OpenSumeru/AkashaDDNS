@@ -39,6 +39,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            /rust/target/x86_64-unknown-linux-gnu/release/AkashaDDNS-rust
-            /rust/target/x86_64-pc-windows-msvc/release/AkashaDDNS-rust.exe
+            target/x86_64-unknown-linux-gnu/release/AkashaDDNS-rust
+            target/x86_64-pc-windows-msvc/release/AkashaDDNS-rust.exe
             
