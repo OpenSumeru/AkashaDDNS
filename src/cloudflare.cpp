@@ -87,7 +87,7 @@ std::string findZoneId(httplib::Client& client, Json config)
     {
         if (rax["name"].string_value() == config["Name"].string_value())
         {
-            return config["ID"].string_value();
+            return rax["ID"].string_value();
         }
         else if (rax.is_bool() && !rax.bool_value())
         {
