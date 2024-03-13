@@ -69,9 +69,18 @@ bool verifyAPI(httplib::Client& client, json config)
 
 std::string findZoneId(httplib::Client& client, json config)
 {
-    if (config["ID"].get<std::string>().length() > 0)
+    std::string eax;
+    try
     {
-        return config["ID"].get<std::string>();
+        config.at("ID").get_to(eax);
+    }
+    catch (std::exception& error)
+    {
+        std::cout << "No Zone ID in Configure\nStart to Get Zone ID from Cloudflare" << std::endl;
+    }
+    if (eax.length() > 0)
+    {
+        return eax;
     }
     for (auto rax : getResult(client, "/zones"))
     {
@@ -106,14 +115,38 @@ std::string findRecordId(httplib::Client& client, std::string zoneId, std::strin
     return "";
 }
 
-std::string putRecordId(httplib::Client& client, std::string zoneId, std::string dnsRecordId, std::string ipAddress, std::string name)
+std::string putIPv4RecordId(httplib::Client& client, std::string zoneId, std::string dnsRecordId, std::string ipAddress, std::string name)
 {
     json requestContent = json{{"content", ipAddress},{"name", name},{"type", "A"}};
     auto json = putResult(client, "/zones/" + zoneId + "/dns_records/" + dnsRecordId, requestContent.dump(), "application/json");
+    try
+    {
     if (json["name"].get<std::string>() == name)
     {
         return json["content"].get<std::string>();
+    } 
     }
-    std::cout << "Put DNS Record Error" << std::endl;
+    catch(std::exception& error)
+    {
+        std::cout << "Put DNS Record Error" << std::endl;
+    }
+    return "";
+}
+
+std::string putIPv6RecordId(httplib::Client& client, std::string zoneId, std::string dnsRecordId, std::string ipAddress, std::string name)
+{
+    json requestContent = json{{"content", ipAddress},{"name", name},{"type", "AAAAA"}};
+    auto json = putResult(client, "/zones/" + zoneId + "/dns_records/" + dnsRecordId, requestContent.dump(), "application/json");
+    try
+    {
+    if (json["name"].get<std::string>() == name)
+    {
+        return json["content"].get<std::string>();
+    } 
+    }
+    catch(std::exception& error)
+    {
+        std::cout << "Put DNS Record Error" << std::endl;
+    }
     return "";
 }

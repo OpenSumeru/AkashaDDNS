@@ -10,6 +10,7 @@
 #include <chrono>
 #include <optional>
 #include <regex>
+#include <functional>
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "httplib.h"

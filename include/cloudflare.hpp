@@ -11,4 +11,5 @@ std::string findZoneId(httplib::Client& client, json config);
 
 std::string findRecordId(httplib::Client& client, std::string zoneId, std::string name);
 
-std::string putRecordId(httplib::Client& client, std::string zoneId, std::string dnsRecordId, std::string ipAddress, std::string name);
+std::string putIPv4RecordId(httplib::Client& client, std::string zoneId, std::string dnsRecordId, std::string ipAddress, std::string name);
+std::string putIPv6RecordId(httplib::Client& client, std::string zoneId, std::string dnsRecordId, std::string ipAddress, std::string name);
