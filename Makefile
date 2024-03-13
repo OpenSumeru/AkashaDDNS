@@ -41,6 +41,13 @@ obj = src/main.o \
 AkashaDDNS: $(obj)
 	$(GCC) $^ -o $(EXE) $(Link)
 
+all:
+	make AkashaDDNS
+	make clean
+	make AkashaDDNS Version=release
+	make clean
+	make AkashaDDNS Version=release-min
+
 clear:
 	$(RM)
 	$(CR)
