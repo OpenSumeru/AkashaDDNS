@@ -16,9 +16,12 @@ jobs:
     
       - name: build rust
         run: cargo build --release --target=x86_64-unknown-linux-gnu
+
+      - name: install nlohmann-json
+        run: sudo apt install nlohmann-json3-dev
+
       - name: build cpp
-        run: apt install nlohmann-json3-dev
-           make all
+        run:           
 
       - name: release
         uses: softprops/action-gh-release@v1
