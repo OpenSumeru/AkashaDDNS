@@ -18,6 +18,7 @@ inline bool isIPv4Valid(std::string& ip)
 inline json getIPv4()
 {
     static httplib::Client client("https://api.iplocation.net");
+    client.set_address_family(AF_INET);
     auto getLocalIP = safeGet(client,"/?cmd=get-ip");
     if (!getLocalIP.has_value())
     {
