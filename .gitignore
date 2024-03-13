@@ -3,5 +3,5 @@
 *.o
 
 
-/target
+rust/target
 Cargo.lock

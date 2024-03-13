@@ -2,48 +2,77 @@
 #include "network.hpp"
 #include "cloudflare.hpp"
 
-int main(size_t argc, char** argv)
+int main(int argc, char** argv)
 {
     if (argc < 2)
     {
         std::cout << "Too few parameters" << std::endl;
         return -1;
     }
+
     std::string configPath = argv[1];
     httplib::Client client("https://api.cloudflare.com");
     if (configPath.length() == 0)
     {
         configPath = "config.json";
     }
-    auto config = readFileToJson(configPath);
-    verifyAPI(client, config["Headers"]);
+    auto config = readFileTojson(configPath);
+
+    if (verifyAPI(client, config["Headers"]))
+    {
+        std::cout << "Verify API Key Error" << std::endl;
+        return 0;
+    }
+
     auto&& zoneId = findZoneId(client, config["Zone"]);
     if (zoneId.length() == 0)
     {
         std::cout << "Find Zone ID Error" << std::endl;
         return 0;
     }
-    auto& dnsName = config["Target"]["DNS-Name"].string_value();
+    auto dnsName = config["Target"]["DNS-Name"].get<std::string>();
+    std::cout << "Found Zone ID" << std::endl;
+
     auto&& dnsRecordId = findRecordId(client, zoneId, dnsName);
     if (dnsRecordId.length() == 0)
     {
         std::cout << "DNS Record ID Error" << std::endl;
         return 0;
     }
-    auto ipAddress = getResult(client, "/zones/" + zoneId + "/dns_records/" + dnsRecordId)["content"].string_value();
+    std::cout << "DNS Record ID OK" << std::endl;
+
+    std::string ipAddress = getResult(client, "/zones/" + zoneId + "/dns_records/" + dnsRecordId)["content"].get<std::string>();
+    std::cout << "Start Looping" << std::endl;
     while (true)
     {
-        auto&& rax = getIPv4();
-        if (rax != ipAddress)
+        auto rax = getIPv4();
+        if (rax.is_array())
         {
-            std::cout << "Changing from " << ipAddress << " to " << rax << std::endl;
-            auto&& reciveIp = putRecordId(client, zoneId, dnsRecordId, rax, dnsName);
-            if (reciveIp == rax)
+            std::cout << "Fail to Get Local IP" << std::endl;
+            continue;
+        }
+        auto rbx = rax["ip"].get<std::string>();
+        rbx = isIPv4Valid(rbx)? rbx : ipAddress;
+
+        if (rbx != ipAddress)
+        {
+            std::cout << "Changing from " << ipAddress << " to " << rbx << std::endl;
+            auto&& reciveIp = putRecordId(client, zoneId, dnsRecordId, rbx, dnsName);
+            if (reciveIp == rbx)
             {
-                ipAddress = rax;
-                std::cout << "Local IP: " << ipAddress << std::endl;
+                if (rax["country_code2"].is_string() && rax["isp"].is_string())
+                {
+                    ipAddress = rbx;
+                    std::cout << "Local IP: " << ipAddress << "; From: " << rax["country_code2"].get<std::string>() << "; Belong: " << rax["isp"].get<std::string>() << std::endl;
+                }
+                else
+                {
+                    ipAddress = rbx;
+                    std::cout << "Local IP: " << ipAddress << std::endl;
+                }
             }
         }
+
         std::this_thread::sleep_for(std::chrono::seconds(100));
     }
     return 0;

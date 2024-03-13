@@ -1,25 +1,34 @@
-ifeq ($(OS),Windows_NT)
+ifeq ($(Version),debug)
+	GCC = g++ -std=c++20 -Iinclude -g
+	EXE = AkashaDDNS-d
+else ifeq ($(Version),release)
 	GCC = g++ -std=c++20 -static -Iinclude -O2
-	
+	EXE = AkashaDDNS
+else ifeq ($(Version),min_release)
+	GCC = g++ -std=c++20 -Iinclude -Os
+	EXE = AkashaDDNS-min
+else
+	GCC = g++ -std=c++20 -Iinclude
+	EXE = AkashaDDNS-d
+endif
+
+ifeq ($(OS),Windows_NT)
 	Link = -lssl \
 		   -lcrypto \
 		   -lws2_32 \
 		   -lcrypt32
-    RM = del src\*.o
-	CR = del AkashaDDNS.exe
+    
 else
     # Linux/Unix
-	GCC = g++ -std=c++20 -static -Iinclude -O2
-
 	Link = -lssl \
 		   -lcrypto
-    RM = rm -rf src/*.o
-	CR = rm -rf AkashaDDNS
+    
 endif
 
+RM = rm src/*.o
+CR = rm AkashaDDNS.exe AkashaDDNS-min.exe AkashaDDNS-d.exe AkashaDDNS-d AkashaDDNS-min AkashaDDNS
 
 obj = src/main.o \
-      src/json11.o \
 	  src/pch.o \
 	  src/cloudflare.o
 
@@ -28,7 +37,7 @@ obj = src/main.o \
 	$(GCC) -c $< -o $@ 
 
 AkashaDDNS: $(obj)
-	$(GCC) $^ -o $@ $(Link)
+	$(GCC) $^ -o $(EXE) $(Link)
 
 clear:
 	$(RM)
