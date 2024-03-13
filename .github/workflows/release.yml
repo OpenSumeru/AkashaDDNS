@@ -21,7 +21,7 @@ jobs:
         run: sudo apt install nlohmann-json3-dev
 
       - name: build cpp
-        run:           
+        run: make all
 
       - name: release
         uses: softprops/action-gh-release@v1
