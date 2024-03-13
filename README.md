@@ -24,15 +24,15 @@ API Key **must include** the accessibility to read and edit the zone. API-Key-Ty
     {
         "API-Key-Type":"Zone",
         "API-Key":"123",
-        "Email":"123"
+        "Email":"test@example.com"
     },
     "Zone":
     {
-        "Name":"123"
+        "Name":"example.com"
     },
     "Target":
     {
-        "DNS-Name":"123"
+        "DNS-Name":"test.example.com"
     },
     "Setting":
     {
