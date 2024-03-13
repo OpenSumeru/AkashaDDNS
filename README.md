@@ -20,7 +20,7 @@ API Key **must include** the accessibility to read and edit the zone. API-Key-Ty
 
 ```json
 {
-    "Headers":
+    "Header":
     {
         "API-Key-Type":"Zone",
         "API-Key":"123",
@@ -33,6 +33,10 @@ API Key **must include** the accessibility to read and edit the zone. API-Key-Ty
     "Target":
     {
         "DNS-Name":"123"
+    },
+    "Setting":
+    {
+        "IP-Version":"IPv4"
     }
 }
 ```
@@ -51,7 +55,7 @@ make AkashaDDNS
 
 [cpp-httplib](https://github.com/yhirose/cpp-httplib)
 
-[json11](https://github.com/dropbox/json11)
+[nlohmann-json](https://github.com/nlohmann/json)
 
 OpenSSL (3.0+)
 
@@ -60,7 +64,6 @@ OpenSSL (3.0+)
 - [ ] OpenSSL (3.0+) **You should install it** follow the instruction in cpp-httplib
 - [ ] [nlohmann-json](https://github.com/nlohmann/json) **You should install it** into your system include path
 - [x] [cpp-httplib](https://github.com/yhirose/cpp-httplib)
-- [x] [json11](https://github.com/dropbox/json11)
 
 ## Rust Build
 
