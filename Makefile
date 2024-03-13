@@ -1,34 +1,52 @@
+GCC-debug = g++ -std=c++20 -Iinclude -g
+GCC-static = g++ -std=c++20 -static -Iinclude -O2
+GCC-small = g++ -std=c++20 -Iinclude -Os
+
+ifeq ($(Version),release)
+	GCC := $(GCC-static)
+	EXE = AkashaDDNS
+else ifeq ($(Version),release-min)
+	GCC := $(GCC-small)
+	EXE = AkashaDDNS-min
+else
+	GCC := $(GCC-debug)
+	EXE = AkashaDDNS-d
+endif
+
 ifeq ($(OS),Windows_NT)
-	GCC = g++ -std=c++20 -static -Iinclude -O2
-	
 	Link = -lssl \
 		   -lcrypto \
 		   -lws2_32 \
 		   -lcrypt32
-    RM = del src\*.o
-	CR = del AkashaDDNS.exe
+    
 else
     # Linux/Unix
-	GCC = g++ -std=c++20 -static -Iinclude -O2
-
 	Link = -lssl \
 		   -lcrypto
-    RM = rm -rf src/*.o
-	CR = rm -rf AkashaDDNS
+    
 endif
 
+RM = rm src/*.o
+CR = rm AkashaDDNS.exe AkashaDDNS-min.exe AkashaDDNS-d.exe AkashaDDNS-d AkashaDDNS-min AkashaDDNS
 
 obj = src/main.o \
-      src/json11.o \
 	  src/pch.o \
-	  src/cloudflare.o
+	  src/cloudflare.o \
+	  src/network.o
 
 
 %.o: %.cpp
 	$(GCC) -c $< -o $@ 
 
 AkashaDDNS: $(obj)
-	$(GCC) $^ -o $@ $(Link)
+	$(GCC) $^ -o $(EXE) $(Link)
+
+all:
+	make AkashaDDNS
+	make clean
+	make AkashaDDNS Version=release
+	make clean
+	make AkashaDDNS Version=release-min
 
 clear:
 	$(RM)

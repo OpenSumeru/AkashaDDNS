@@ -56,9 +56,9 @@ pub async fn put_result(client: &Client, path: &str, text: String) -> crate::Res
 
 pub async fn verify_api(config: &Value) -> crate::Result<Client> {
     /*
-    {"X-Auth-Email",config["Email"].string_value()},
-    {config["API-Key-Type"].string_value()=="Auth"?"X-Auth-Key":"Authorization",
-    config["API-Key-Type"].string_value()=="Auth"?config["API-Key"].string_value():"Bearer "+config["API-Key"].string_value()}
+    {"X-Auth-Email",config["Email"].get<std::string>()},
+    {config["API-Key-Type"].get<std::string>()=="Auth"?"X-Auth-Key":"Authorization",
+    config["API-Key-Type"].get<std::string>()=="Auth"?config["API-Key"].get<std::string>():"Bearer "+config["API-Key"].get<std::string>()}
      */
     let mut header = HeaderMap::new();
     header.insert("X-Auth-Email", config["Email"].as_str().unwrap().parse()?);

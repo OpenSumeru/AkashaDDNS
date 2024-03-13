@@ -20,11 +20,10 @@ std::string readFileToString(const std::string& filePath)
     return content;
 }
 
-Json readFileToJson(const std::string& filePath)
+json readFileTojson(const std::string& filePath)
 {
-    std::string error;
-    auto result = Json::parse(readFileToString(filePath),error);
-    std::cout << error << std::endl;
+    std::ifstream fin(filePath);
+    auto result = json::parse(fin);
     return result;
 }
 

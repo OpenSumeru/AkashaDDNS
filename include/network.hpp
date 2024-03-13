@@ -1,13 +1,8 @@
 #pragma once
 #include "pch.h"
 
-inline std::string getIPv4()
-{
-    static httplib::Client client("https://api.ipify.org");
-    auto result = safeGet(client, "/");
-    if (!result.has_value())
-    {
-        return "";
-    }
-    return std::string(result.value()->body);
-}
+bool isIPv4Valid(std::string& ip);
+bool isIPv6Valid(std::string& ip);
+
+json getIPv4();
+json getIPv6();
