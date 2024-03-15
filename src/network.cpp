@@ -9,7 +9,7 @@ bool isIPv4Valid(std::string& ip)
     }
     else
     {
-        std::cout << "Error IPv4 Pattern: IP=" << ip << std::endl;
+        std::cout << "\033[0;31mError IPv4 Pattern: IP=" << ip << std::endl;
         return false;
     }
 }
@@ -23,7 +23,7 @@ bool isIPv6Valid(std::string& ip)
     }
     else
     {
-        std::cout << "Error IPv6 Pattern: IP=" << ip << std::endl;
+        std::cout << "\033[0;31mError IPv6 Pattern: IP=" << ip << std::endl;
         return false;
     }
 }

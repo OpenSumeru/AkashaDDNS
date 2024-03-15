@@ -4,18 +4,17 @@
 
 void quitProgram()
 {
-    while (getchar() != 'q')
+    if (getchar() == 'q')
     {
-
+        exit(0);
     }
-    exit(0);
 }
 
 int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        std::cout << "Too few parameters" << std::endl;
+        std::cout << "\033[0;31mToo few parameters\033[0m" << std::endl;
         return -1;
     }
 
@@ -56,27 +55,26 @@ int main(int argc, char** argv)
 
     if (verifyAPI(client, config["Header"]))
     {
-        std::cout << "Verify API Key Error" << std::endl;
+        std::cout << "\033[0;31mVerify API Key Error\033[0m" << std::endl;
         return 0;
     }
 
     auto&& zoneId = findZoneId(client, config["Zone"]);
     if (zoneId.length() == 0)
     {
-        std::cout << "Find Zone ID Error" << std::endl;
+        std::cout << "\033[0;31mFind Zone ID Error\033[0m" << std::endl;
         return 0;
     }
-    auto dnsName = config["Target"]["DNS-Name"].get<std::string>();
     std::cout << "Found Zone ID" << std::endl;
-
+    
+    auto dnsName = config["Target"]["DNS-Name"].get<std::string>();
     auto&& dnsRecordId = findRecordId(client, zoneId, dnsName);
     if (dnsRecordId.length() == 0)
     {
-        std::cout << "DNS Record ID Error" << std::endl;
+        std::cout << "\033[0;31mDNS Record ID Error\033[0m" << std::endl;
         return 0;
     }
     std::cout << "DNS Record ID OK" << std::endl;
-
     std::string ipAddress = getResult(client, "/zones/" + zoneId + "/dns_records/" + dnsRecordId)["content"].get<std::string>();
     std::thread quitRunner(quitProgram);
     std::cout << "Start Looping" << std::endl;
@@ -89,7 +87,7 @@ int main(int argc, char** argv)
         }
         catch (std::exception& error)
         {
-        std::cout << "Fail to Read IP from Cloudflare" << std::endl;
+        std::cout << "\033[0;31mFail to Read IP from Cloudflare\033[0m" << std::endl;
         }
 
         std::string rbx;
@@ -98,14 +96,14 @@ int main(int argc, char** argv)
         {
         if (rax.is_array())
         {
-            std::cout << "Fail to Get Local IP" << std::endl;
+            std::cout << "\033[0;31mFail to Get Local IP\033[0m" << std::endl;
             continue;
         }
         rbx = rax["ip"].get<std::string>();
         }
         catch (std::exception& error)
         {
-        std::cout << "Fail to Read IP" << std::endl;
+        std::cout << "\033[0;31mFail to Read IP\033[0m" << std::endl;
         }
         rbx = isIPValid(rbx)? rbx : ipAddress;
 
@@ -117,21 +115,22 @@ int main(int argc, char** argv)
             auto&& reciveIp = putRecordId(client, zoneId, dnsRecordId, rbx, dnsName);
             if (reciveIp == rbx)
             {
+                ipAddress = rbx;
                 try
                 {
                 if (rax["country_code"].is_string() && rax["organization"].is_string())
                 {
-                    std::cout << "Local IP:" << ipAddress 
-                    << " From:" << rax["country_code"].get<std::string>() 
-                    << " Belong:" << rax["organization"].get<std::string>()
-                    << " Longitude:" << rax["longitude"].get<std::string>() 
-                    << " Latitude:" << rax["latitude"].get<std::string>() << std::endl;
+                    std::cout << "\033[0;32mLocal IP: \033[0m" << ipAddress 
+                    << "\033[0;32m From: \033[0m" << rax["country_code"].get<std::string>() 
+                    << "\033[0;32m Belong: \033[0m" << rax["organization"].get<std::string>()
+                    << "\033[0;32m Longitude: \033[0m" << rax["longitude"].get<std::string>() 
+                    << "\033[0;32m Latitude: \033[0m" << rax["latitude"].get<std::string>() << std::endl;
                 }
                 }
                 catch (std::exception& error)
                 {   
-                    std::cout << "Fail to Print Advance Information" << std::endl;
-                    std::cout << "Local IP: " << ipAddress << std::endl;
+                    std::cout << "\033[0;31mFail to Print Advance Information\033[0m" << std::endl;
+                    std::cout << "\033[0;32mLocal IP: \033[0m" << ipAddress << std::endl;
                 }
                 
             }

@@ -23,7 +23,7 @@ json getResult(httplib::Client& client, std::string path, std::string pathHead)
     }
     for (auto rax : result["errors"])
     {
-        std::cout << "Error: " << rax.dump() << std::endl;
+        std::cout << "\033[0;31mError: \033[0m" << rax.dump() << std::endl;
     }
     return json{false,false};
 }
@@ -51,7 +51,7 @@ json putResult(httplib::Client& client, std::string path, std::string text, std:
     }
     for (auto rax : result["errors"])
     {
-        std::cout << "Error: " << rax.dump() << std::endl;
+        std::cout << "\033[0;31mError: \033[0m" << rax.dump() << std::endl;
     }
     return json{false,false};
 }
@@ -86,7 +86,7 @@ std::string findZoneId(httplib::Client& client, json config)
     {
         if (rax["name"].get<std::string>() == config["Name"].get<std::string>())
         {
-            return rax["ID"].get<std::string>();
+            return rax["id"].get<std::string>();
         }
         else if (rax.is_array())
         {
@@ -111,7 +111,7 @@ std::string findRecordId(httplib::Client& client, std::string zoneId, std::strin
             break;
         }
     }
-    std::cout << "DNS Record " << name << " not found" << std::endl;
+    std::cout << "\033[0;31mDNS Record " << name << " not found\033[0m" << std::endl;
     return "";
 }
 
@@ -128,7 +128,7 @@ std::string putIPv4RecordId(httplib::Client& client, std::string zoneId, std::st
     }
     catch(std::exception& error)
     {
-        std::cout << "Put DNS Record Error" << std::endl;
+        std::cout << "\033[0;31mPut DNS Record Error\033[0m" << std::endl;
     }
     return "";
 }
@@ -146,7 +146,7 @@ std::string putIPv6RecordId(httplib::Client& client, std::string zoneId, std::st
     }
     catch(std::exception& error)
     {
-        std::cout << "Put DNS Record Error" << std::endl;
+        std::cout << "\033[0;31mPut DNS Record Error\033[0m" << std::endl;
     }
     return "";
 }

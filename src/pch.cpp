@@ -7,7 +7,7 @@ std::string readFileToString(const std::string& filePath)
 
     // 检查文件是否成功打开
     if (!file.is_open()) {
-        std::cout << "Error opening file: " << filePath << std::endl;
+        std::cout << "\033[0;31mError opening file: " << filePath << std::endl;
         return "";  // 返回空字符串表示出错
     }
 
@@ -44,7 +44,7 @@ std::optional<httplib::Result> safeGet(httplib::Client& client, std::string path
         }
     }
 
-    std::cout << "Error: " << result->reason << "\nError Message: " << result->body << std::endl;
+    std::cout << "\033[0;31mError: " << result->reason << "\nError Message: " << result->body << std::endl;
     return std::nullopt;
 }
 
@@ -65,6 +65,6 @@ std::optional<httplib::Result> safePut(httplib::Client& client, std::string path
         }
     }
 
-    std::cout << "Error: " << result->reason << "\nError Message: " << result->body << std::endl;
+    std::cout << "\033[0;31mError: " << result->reason << "\nError Message: " << result->body << std::endl;
     return std::nullopt;
 }
