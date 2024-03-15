@@ -114,7 +114,7 @@ make AkashaDDNS Version=release
 make AkashaDDNS Version=release-min
 ```
 
-To build al versions, run
+To build all versions, run
 
 ```bash
 make all
