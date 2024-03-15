@@ -1,6 +1,10 @@
-GCC-debug = g++ -std=c++20 -Iinclude -g
-GCC-static = g++ -std=c++20 -static -Iinclude -O2
-GCC-small = g++ -std=c++20 -Iinclude -Os
+ifeq ($(CXX),)
+	CXX = clang++
+endif
+
+GCC-debug = $(CXX)-std=c++20 -Iinclude -g
+GCC-static = $(CXX) -std=c++20 -static -Iinclude -O2
+GCC-small = $(CXX) -std=c++20 -Iinclude -Os
 
 ifeq ($(Version),release)
 	GCC := $(GCC-static)
