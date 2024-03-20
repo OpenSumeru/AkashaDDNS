@@ -2,18 +2,18 @@ ifeq ($(CXX),)
 	CXX = clang++
 endif
 
-GCC-debug = $(CXX)-std=c++20 -Iinclude -g
+GCC-debug = $(CXX) -std=c++20 -Iinclude -g
 GCC-static = $(CXX) -std=c++20 -static -Iinclude -O2
 GCC-small = $(CXX) -std=c++20 -Iinclude -Os
 
 ifeq ($(Version),release)
-	GCC := $(GCC-static)
+	GCC = $(GCC-static)
 	EXE = AkashaDDNS
 else ifeq ($(Version),release-min)
-	GCC := $(GCC-small)
+	GCC = $(GCC-small)
 	EXE = AkashaDDNS-min
 else
-	GCC := $(GCC-debug)
+	GCC = $(GCC-debug)
 	EXE = AkashaDDNS-d
 endif
 
