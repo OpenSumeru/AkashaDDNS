@@ -31,12 +31,9 @@ else
 endif
 
 RM = rm src/*.o
-CR = rm AkashaDDNS.exe AkashaDDNS-min.exe AkashaDDNS-d.exe AkashaDDNS-d AkashaDDNS-min AkashaDDNS
+CR = rm AkashaDDNS*
 
-obj = src/main.o \
-	  src/pch.o \
-	  src/cloudflare.o \
-	  src/network.o
+obj = $(wildcard src/*.cpp)
 
 
 %.o: %.cpp
