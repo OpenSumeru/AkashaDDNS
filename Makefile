@@ -33,8 +33,8 @@ endif
 RM = rm src/*.o
 CR = rm AkashaDDNS*
 
-obj = $(wildcard src/*.cpp)
-
+src = $(wildcard src/*.cpp)
+obj = $(patsubst src/%.cpp,src/%.o,$(src))
 
 %.o: %.cpp
 	$(GCC) -c $< -o $@ 
@@ -43,15 +43,15 @@ AkashaDDNS: $(obj)
 	$(GCC) $^ -o $(EXE) $(Link)
 
 all:
-	make AkashaDDNS
-	make clean
-	make AkashaDDNS Version=release
-	make clean
-	make AkashaDDNS Version=release-min
+	$(MAKE) AkashaDDNS
+	$(MAKE) clean
+	$(MAKE) AkashaDDNS Version=release
+	$(MAKE) clean
+	$(MAKE) AkashaDDNS Version=release-min
 
 clear:
-	$(RM)
 	$(CR)
+	$(RM)
 
 clean:
 	$(RM)
