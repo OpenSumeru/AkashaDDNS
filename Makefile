@@ -1,46 +1,54 @@
-ifeq ($(CXX),)
-	CXX = clang++
-endif
-
-GCC-debug = $(CXX) -std=c++20 -Iinclude -g
-GCC-static = $(CXX) -std=c++20 -static -Iinclude -O2
-GCC-small = $(CXX) -std=c++20 -Iinclude -Os
+CXX = clang++
+CXXFLAG = -std=c++20
+PCHFLAG = -x c++-header
 
 ifeq ($(Version),release)
-	GCC = $(GCC-static)
+	CXXFLAG += -Os
 	EXE = AkashaDDNS
 else ifeq ($(Version),release-min)
-	GCC = $(GCC-small)
+	CXXFLAG += -static -O2
 	EXE = AkashaDDNS-min
 else
-	GCC = $(GCC-debug)
+	CXXFLAG += -g
 	EXE = AkashaDDNS-d
 endif
 
-ifeq ($(OS),Windows_NT)
-	Link = -lssl \
-		   -lcrypto \
-		   -lws2_32 \
-		   -lcrypt32
-    
-else
-    # Linux/Unix
-	Link = -lssl \
-		   -lcrypto
-    
-endif
+RM = rm
 
-RM = rm src/*.o
-CR = rm AkashaDDNS*
+INCLUDEDIR = include
+SRCDIR = src
 
-src = $(wildcard src/*.cpp)
-obj = $(patsubst src/%.cpp,src/%.o,$(src))
+HEADERPPS = $(wildcard $(INCLUDEDIR)/*.hpp) 
+HEADERS = $(wildcard $(INCLUDEDIR)/*.h)
+PCHS = $(patsubst $(INCLUDEDIR)/%.hpp,$(INCLUDEDIR)/%.pch,$(HEADERPPS)) \
+       $(patsubst $(INCLUDEDIR)/%.h,$(INCLUDEDIR)/%.pch,$(HEADERS))
+
+SRCPPS = $(wildcard $(SRCDIR)/*.cpp)
+SRCS = $(wildcard $(SRCDIR)/*.c)
+OBJS = $(patsubst $(SRCDIR)/%.cpp,$(SRCDIR)/%.o,$(SRCPPS)) \
+       $(patsubst $(SRCDIR)/%.c,$(SRCDIR)/%.o,$(SRCS))
+
+FLAG = $(CXXFLAG) -I$(INCLUDEDIR)
+LINK = -lssl \
+	   -lcrypto \
+	   -lws2_32 \
+       -lcrypt32
+EXE = main.exe
+
+%.pch: %.h
+	$(CXX) $(PCHFLAG) $(FLAG) $< -o $@ -Winvalid-pch
+
+%.pch: %.hpp
+	$(CXX) $(PCHFLAG) $(FLAG) $< -o $@ -Winvalid-pch
+
+%.o: %.c
+	$(CXX) $(FLAG) -include-pch include -c $< -o $@
 
 %.o: %.cpp
-	$(GCC) -c $< -o $@ 
+	$(CXX) $(FLAG) -include-pch include -c $< -o $@
 
-AkashaDDNS: $(obj)
-	$(GCC) $^ -o $(EXE) $(Link)
+AkashaDDNS: $(PCHS) $(OBJS)
+	$(CXX) $(FLAG) $(OBJS) -o $(EXE) $(LINK)
 
 all:
 	$(MAKE) AkashaDDNS
@@ -49,9 +57,10 @@ all:
 	$(MAKE) clean
 	$(MAKE) AkashaDDNS Version=release-min
 
-clear:
-	$(CR)
-	$(RM)
-
 clean:
-	$(RM)
+	- $(RM) $(OBJS)
+	- $(RM) $(PCHS)
+
+clear:
+	- $(MAKE) clean
+	- $(RM) AkashaDDNS*
