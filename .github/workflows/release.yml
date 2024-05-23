@@ -18,7 +18,7 @@ jobs:
         run: cargo build --release --target=x86_64-unknown-linux-gnu
 
       - name: get xmake
-      - uses: xmake-io/github-action-setup-xmake@v1
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
       - name: build cpp
@@ -42,7 +42,7 @@ jobs:
         run: cargo build --release --target=x86_64-pc-windows-msvc
 
       - name: get xmake
-      - uses: xmake-io/github-action-setup-xmake@v1
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
       - name: build cpp
