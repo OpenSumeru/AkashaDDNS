@@ -6,3 +6,5 @@
 rust/target
 Cargo.lock
 *.pch
+/.xmake
+/build

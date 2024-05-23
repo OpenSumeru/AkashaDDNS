@@ -1,12 +1,12 @@
-CXX = clang++
+CXX = c++
 CXXFLAG = -std=c++20
 PCHFLAG = -x c++-header
 
 ifeq ($(Version),release)
-	CXXFLAG += -Os
+	CXXFLAG += -O2
 	EXE = AkashaDDNS
 else ifeq ($(Version),release-min)
-	CXXFLAG += -static -O2
+	CXXFLAG += -static -Os
 	EXE = AkashaDDNS-min
 else
 	CXXFLAG += -g
@@ -33,7 +33,6 @@ LINK = -lssl \
 	   -lcrypto \
 	   -lws2_32 \
        -lcrypt32
-EXE = main.exe
 
 %.pch: %.h
 	$(CXX) $(PCHFLAG) $(FLAG) $< -o $@ -Winvalid-pch
@@ -42,10 +41,10 @@ EXE = main.exe
 	$(CXX) $(PCHFLAG) $(FLAG) $< -o $@ -Winvalid-pch
 
 %.o: %.c
-	$(CXX) $(FLAG) -include-pch include -c $< -o $@
+	$(CXX) $(FLAG) -I include -c $< -o $@
 
 %.o: %.cpp
-	$(CXX) $(FLAG) -include-pch include -c $< -o $@
+	$(CXX) $(FLAG) -I include -c $< -o $@
 
 AkashaDDNS: $(PCHS) $(OBJS)
 	$(CXX) $(FLAG) $(OBJS) -o $(EXE) $(LINK)
