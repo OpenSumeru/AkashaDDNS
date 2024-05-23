@@ -22,7 +22,7 @@ jobs:
         with:
           xmake-version: latest
       - name: build cpp
-        run: xmake
+        run: xmake -y
 
       - name: release
         uses: softprops/action-gh-release@v1
@@ -46,7 +46,7 @@ jobs:
         with:
           xmake-version: latest
       - name: build cpp
-        run: xmake
+        run: xmake -y
 
       - name: release
         uses: softprops/action-gh-release@v1
