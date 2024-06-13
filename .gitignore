@@ -8,3 +8,4 @@ Cargo.lock
 *.pch
 /.xmake
 /build
+/.cache

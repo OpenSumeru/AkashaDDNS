@@ -8,7 +8,7 @@ env:
 
 jobs:
   build-linux:
-    if: startsWith(github.ref, 'refs/tags/')
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -23,14 +23,15 @@ jobs:
         run: xmake -y
 
       - name: release
-        uses: softprops/action-gh-release@v1
+        uses: OpenSumeru/AkashaDDNS@main
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             target/x86_64-unknown-linux-gnu/release/AkashaDDNS-rust
             build/linux/x86_64/release/AkashaDDNS
   
   build-windows:
-    if: startsWith(github.ref, 'refs/tags/')
+    permissions: write-all
     runs-on: windows-latest
     steps:
       - name: checkout
@@ -45,7 +46,8 @@ jobs:
         run: xmake -y
 
       - name: release
-        uses: softprops/action-gh-release@v1
+        uses: OpenSumeru/AkashaDDNS@main
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             target/x86_64-pc-windows-msvc/release/AkashaDDNS-rust.exe
