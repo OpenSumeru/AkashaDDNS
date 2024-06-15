@@ -1,137 +1,245 @@
-use reqwest::{header::HeaderMap, Client, ClientBuilder};
+use std::net::IpAddr;
+
+use crate::{GetIpVersion, Result};
 use serde_json::Value;
 
-const PATH_STATIC: &str = "https://api.cloudflare.com/client/v4";
+use crate::config::Config;
 
-pub async fn get_result(
-    client: &Client,
-    path: &str,
-    // path_head: Option<&str>,
-) -> crate::Result<Value> {
-    let mut result = client
-        .get(format!("{}{}", PATH_STATIC, path))
-        .send()
-        .await?
-        .json::<Value>()
-        .await?;
-    for rax in result["messages"].as_array().unwrap() {
-        println!(
-            "Code: {}; Message: {}",
-            rax["code"].as_number().unwrap(),
-            rax["message"].as_str().unwrap()
-        );
-    }
-    if result["success"].as_bool().is_some_and(|b| b) {
-        return Ok(result["result"].take());
-    }
-    for rax in result["errors"].as_array().unwrap() {
-        eprintln!("Error: {}", rax)
-    }
-    panic!()
+#[derive(Debug, serde::Deserialize)]
+pub struct ApiResponse<T> {
+    pub success: bool,
+    pub result: Option<T>,
+    pub errors: Vec<Value>,
+    pub messages: Vec<Message>,
 }
 
-pub async fn put_result(client: &Client, path: &str, text: String) -> crate::Result<Value> {
-    let mut result = client
-        .put(format!("{}{}", PATH_STATIC, path))
-        .body(text)
-        .send()
-        .await?
-        .json::<Value>()
-        .await?;
-    for rax in result["messages"].as_array().unwrap() {
-        println!(
-            "Code: {}; Message: {}",
-            rax["code"].as_str().unwrap(),
-            rax["message"].as_str().unwrap()
-        );
+impl<T> ApiResponse<T> {
+    pub fn solve(self) -> Result<T> {
+        for message in self.messages {
+            log::info!("code: {}, message: {}", message.code, message.message);
+        }
+        if self.success {
+            Ok(self.result.unwrap())
+        } else {
+            Err(Value::Array(self.errors).to_string())?
+        }
     }
-    if result["success"].as_bool().is_some_and(|b| b) {
-        return Ok(result["result"].take());
-    }
-    for rax in result["errors"].as_array().unwrap() {
-        eprintln!("Error: {}", rax)
-    }
-    panic!()
 }
 
-pub async fn verify_api(config: &Value) -> crate::Result<Client> {
-    /*
-    {"X-Auth-Email",config["Email"].get<std::string>()},
-    {config["API-Key-Type"].get<std::string>()=="Auth"?"X-Auth-Key":"Authorization",
-    config["API-Key-Type"].get<std::string>()=="Auth"?config["API-Key"].get<std::string>():"Bearer "+config["API-Key"].get<std::string>()}
-     */
-    let mut header = HeaderMap::new();
-    header.insert("X-Auth-Email", config["Email"].as_str().unwrap().parse()?);
-    if config["API-Key-Type"] == "Auth" {
-        header.insert("X-Auth-Key", config["API-Key"].as_str().unwrap().parse()?);
+#[derive(Debug, serde::Deserialize)]
+pub struct Message {
+    pub code: usize,
+    pub message: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct VerifyApi {}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct Zone {
+    pub name: String,
+    pub id: String,
+}
+
+#[derive(Debug)]
+pub struct Zones {
+    zones: Vec<Zone>,
+}
+
+impl std::fmt::Display for Zones {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(&self.zones, f)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Zones {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Vec::<Zone>::deserialize(deserializer).map(|zones| Zones { zones })
+    }
+}
+
+trait SetHeader {
+    fn set_header(self, config: &Config) -> Self;
+}
+
+impl SetHeader for reqwest::RequestBuilder {
+    fn set_header(self, config: &Config) -> Self {
+        let builder = self.header("X-Auth-Email", &config.header.email);
+        if config.header.api_key_type == "Auth" {
+            builder.header("X-Auth-Key", &config.header.api_key)
+        } else {
+            let val = &format!("Bearer {}", &config.header.api_key);
+            builder.header("Authorization", val)
+        }
+    }
+}
+
+pub async fn verify_api(client: &reqwest::Client, config: &Config) -> Result<VerifyApi> {
+    client
+        .get("https://api.cloudflare.com/client/v4/user/tokens/verify")
+        .set_header(config)
+        .send()
+        .await?
+        .json::<ApiResponse<VerifyApi>>()
+        .await?
+        .solve()
+}
+
+pub async fn find_zone_id(client: &reqwest::Client, config: &Config) -> Result<String> {
+    if let Some(id) = &config.zone.id {
+        return Ok(id.clone());
     } else {
-        header.insert(
-            "Authorization",
-            format!("Bearer {}", config["API-Key"].as_str().unwrap()).parse()?,
-        );
-    };
+        log::warn!("Zone ID is unset in configure");
+        log::info!("start to get Zone ID");
+    }
+    let zones = client
+        .get("https://api.cloudflare.com/client/v4/zones")
+        .set_header(config)
+        .send()
+        .await?
+        .json::<ApiResponse<Zones>>()
+        .await?
+        .solve()?;
 
-    let client = ClientBuilder::new().default_headers(header).build()?;
-    get_result(&client, "/user/tokens/verify").await?;
-    Ok(client)
-}
-
-pub async fn find_zone_id(client: &Client, config: &Value) -> crate::Result<String> {
-    let id = config["ID"]
-        .as_str()
-        .map(|s| s.to_owned())
-        .unwrap_or_default();
-
-    if !id.is_empty() {
-        return Ok(id);
+    for zone in zones.zones {
+        if zone.name == config.zone.name {
+            return Ok(zone.id);
+        }
     }
 
-    let json = get_result(client, "/zones").await?;
-    let json = json.as_array().unwrap();
-
-    let rax = json
-        .iter()
-        .find(|rax| rax["name"] == config["Name"])
-        .unwrap_or_else(|| {
-            panic!(
-                "Find Zone ID Error: Zone {} not found",
-                config["Name"].as_str().unwrap()
-            )
-        });
-
-    Ok(rax["id"].as_str().unwrap().to_owned())
+    Err(format!(
+        "non of zones match the given zone name `{}`",
+        config.zone.name
+    ))?
 }
 
-pub async fn find_record_id(client: &Client, zond_id: &str, name: &str) -> crate::Result<String> {
-    let json = get_result(client, &format!("/zones/{}/dns_records", zond_id)).await?;
-    let json = json.as_array().unwrap();
-
-    let rax = json
-        .iter()
-        .find(|rax| rax["name"] == name)
-        .unwrap_or_else(|| panic!("DNS Record ID Error: DNS Record {} not found", name));
-    Ok(rax["id"].as_str().unwrap().to_owned())
+#[derive(Debug, serde::Deserialize)]
+pub struct Record {
+    pub name: String,
+    pub id: String,
+    pub content: IpAddr,
 }
 
-pub async fn put_record_id(
-    client: &Client,
-    zond_id: &str,
-    dns_record_id: &str,
-    ip_address: &str,
+#[derive(Debug)]
+pub struct Records {
+    records: Vec<Record>,
+}
+
+impl std::fmt::Display for Records {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Records {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Vec::<Record>::deserialize(deserializer).map(|zones| Records { records: zones })
+    }
+}
+
+pub async fn get_dns_record(client: &reqwest::Client, zone_id: &str, name: &str) -> Result<Record> {
+    let url = format!("https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records",);
+    let records = client
+        .get(url)
+        .send()
+        .await?
+        .json::<ApiResponse<Records>>()
+        .await?
+        .solve()?;
+
+    for record in records.records {
+        if record.name == name && record.id == name {
+            return Ok(record);
+        }
+    }
+
+    Err(format!("DNS record `{name}` not found"))?
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct Overwrite {
+    pub content: IpAddr,
+    pub name: String,
+}
+
+async fn overwrite_dns_record_inner(
+    type_: &str,
+    client: &reqwest::Client,
+    zone_id: &str,
+    record_id: &str,
+    ip_address: IpAddr,
     name: &str,
-) -> crate::Result<String> {
-    let content = serde_json::json! ({
-        "content": ip_address,
+) -> Result<IpAddr> {
+    let url = format!(
+        "https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{record_id}",
+        zone_id = zone_id,
+        record_id = record_id
+    );
+    let body = serde_json::json!({
+        "type": type_,
         "name": name,
-        "type": "A",
+        "content": ip_address.to_string(),
+        "ttl": 1,
+        "proxied": false,
     });
+    let result = client
+        .put(url)
+        .json(&body)
+        .send()
+        .await?
+        .json::<ApiResponse<Overwrite>>()
+        .await?
+        .solve()?;
 
-    let path = format!("/zones/{}/dns_records/{}", zond_id, dns_record_id);
-    let json = put_result(client, &path, content.to_string()).await?;
-
-    if json["name"] == name {
-        return Ok(json["content"].as_str().unwrap().to_owned());
+    if result.name == name {
+        Ok(result.content)
+    } else {
+        Err(format!(
+            "Overwrite DNS record `{name}` error: expect name `{name}`, but `{}` found",
+            result.name
+        ))?
     }
-    eprintln!("Put DNS Record Error");
-    Ok(String::new())
+}
+
+pub async fn overwrite_ipv4_dns_record(
+    client: &reqwest::Client,
+    zone_id: &str,
+    record_id: &str,
+    ip_address: IpAddr,
+    name: &str,
+) -> Result<IpAddr> {
+    overwrite_dns_record_inner("A", client, zone_id, record_id, ip_address, name).await
+}
+
+pub async fn overwrite_ipv6_dns_record(
+    client: &reqwest::Client,
+    zone_id: &str,
+    record_id: &str,
+    ip_address: IpAddr,
+    name: &str,
+) -> Result<IpAddr> {
+    overwrite_dns_record_inner("AAAAA", client, zone_id, record_id, ip_address, name).await
+}
+
+pub async fn put_dns_record(
+    client: &reqwest::Client,
+    zone_id: &str,
+    record_id: &str,
+    ip_address: IpAddr,
+    name: &str,
+) -> Result<IpAddr> {
+    match ip_address.get_ip_version() {
+        crate::IpVersion::V4 => {
+            overwrite_ipv4_dns_record(client, zone_id, record_id, ip_address, name).await
+        }
+        crate::IpVersion::V6 => {
+            overwrite_ipv6_dns_record(client, zone_id, record_id, ip_address, name).await
+        }
+    }
 }
