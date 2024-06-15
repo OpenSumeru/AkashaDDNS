@@ -1,51 +1,72 @@
-#![allow(non_snake_case)]
+use cloudflare::*;
+use config::Config;
+use network::*;
+use std::{process::ExitCode, time::Duration};
+use tokio::fs;
 
 mod cloudflare;
+mod config;
+mod network;
 
-type Result<T = ()> = std::result::Result<T, Box<dyn std::error::Error>>;
+type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
 #[tokio::main]
-async fn main() -> Result {
-    let Some(config_path) = std::env::args().nth(1) else {
-        panic!("too few arguments")
-    };
+async fn main() -> Result<ExitCode> {
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
-    let config = tokio::fs::read_to_string(&config_path).await?;
-    let config: serde_json::Value = config.parse()?;
+    let main = tokio::spawn(async move {
+        let Err(err) = run().await else {
+            unreachable!()
+        };
+        log::error!("{err}");
+    });
 
-    let client = cloudflare::verify_api(config.get("Headers").unwrap()).await?;
-
-    let zone_id = cloudflare::find_zone_id(&client, &config["Zone"]).await?;
-    let dns_name = config["Target"]["DNS-Name"].as_str().unwrap();
-    let dns_record_id = cloudflare::find_record_id(&client, &zone_id, dns_name).await?;
-
-    let mut ip_address = cloudflare::get_result(
-        &client,
-        &format!("/zones/{}/dns_records/{}", zone_id, dns_record_id),
-    )
-    .await?["content"]
-        .as_str()
-        .unwrap()
-        .to_owned();
-
-    loop {
-        let rax = get_ipv4().await?;
-        if rax != ip_address {
-            println!("Changing from {} to {}", ip_address, rax);
-            let receive_ip =
-                cloudflare::put_record_id(&client, &zone_id, &dns_record_id, &rax, dns_name)
-                    .await?;
-            if receive_ip == rax {
-                ip_address = rax;
-                println!("Local IP: {}", ip_address);
-            }
+    tokio::select! {
+        _ = main => {
+            log::info!("stoped unexpectly by error");
+            Ok(ExitCode::FAILURE)
         }
-
-        tokio::time::sleep(std::time::Duration::from_secs(100)).await;
+        _ = tokio::signal::ctrl_c() => {
+            log::info!("stoped by ctrl-c");
+            Ok(ExitCode::SUCCESS)
+        }
     }
 }
 
-#[inline]
-async fn get_ipv4() -> Result<String> {
-    Ok(reqwest::get("https://api.ipify.org").await?.text().await?)
+async fn run() -> Result<()> {
+    let config_path = std::env::args().nth(1).unwrap_or_else(|| {
+        log::warn!("too few arguments!");
+        log::warn!("config_path set to ./config.json as default");
+        "config.json".to_owned()
+    });
+
+    let config: Config = serde_json::from_str(&fs::read_to_string(config_path).await?)?;
+
+    let (client, ip) = match config.setting.ip_version {
+        config::IpVersion::IPv4 => init_ipv4().await?,
+        config::IpVersion::IPv6 => init_ipv6().await?,
+        config::IpVersion::Auto => init_unordered().await?,
+    };
+    log::info!("local ip: {ip}");
+    verify_api(&client, &config).await?;
+    log::info!("api key verified");
+    let zone_id = find_zone_id(&client, &config).await?;
+    log::info!("found zone id");
+
+    let mut ip;
+    let dns_name = &config.target.dns_name;
+    log::info!("start looping");
+
+    loop {
+        let record = get_dns_record(&client, &zone_id, dns_name).await?;
+        ip = record.content;
+        let real_ip = get_ip(&client, ip.get_ip_version()).await?;
+        if real_ip != ip {
+            log::info!("changeing from `{ip}` to {real_ip}");
+            put_dns_record(&client, &zone_id, &record.id, real_ip, dns_name).await?;
+        }
+        tokio::time::sleep(Duration::from_secs(60)).await;
+    }
 }

@@ -3,7 +3,7 @@
 *.o
 
 
-rust/target
+target
 Cargo.lock
 *.pch
 /.xmake
