@@ -40,6 +40,12 @@ jobs:
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
+        
+      - name: install openssl3
+        run: |
+            curl -L -o openssl.zip https://slproweb.com/download/Win64OpenSSL-3_0_0.zip
+            Expand-Archive -Path openssl.zip -DestinationPath $PWD/openssl
+            echo "$PWD/openssl/Win64OpenSSL-3_0_0/bin" >> $env:GITHUB_PATH
 
       - name: build cpp
         run: xmake -y
