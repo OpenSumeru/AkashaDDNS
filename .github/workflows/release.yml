@@ -41,7 +41,8 @@ jobs:
         with:
           xmake-version: xmake-io/xmake#branch@dev
       - name: update repo
-        run: xrepo update-repo
+        run: xrepo install openssl3
+        
       - name: build cpp
         run: xmake -y
 
