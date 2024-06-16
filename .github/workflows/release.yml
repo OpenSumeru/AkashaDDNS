@@ -40,7 +40,8 @@ jobs:
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: xmake-io/xmake#branch@dev
-      
+      - name: update repo
+        run: xrepo update-repo
       - name: build cpp
         run: xmake -y
 
