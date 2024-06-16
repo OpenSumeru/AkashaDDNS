@@ -37,13 +37,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: get xmake
-        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy mingw-w64-x86_64-xmake"
+        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy mingw-w64-x86_64-xmake --noconfirm"
 
-      # - name: update repo
-      #   run: xrepo update-repo
+      - name: add msys2 to PATH
+        run: echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
 
-      - name: build cpp
-        run: C:\msys64\usr\bin\bash.exe -l -c "xmake -y"
+      - name: Check xmake version
+        run: xmake --version
+        shell: bash
 
       - name: release
         uses: softprops/action-gh-release@v1
