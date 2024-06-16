@@ -7,7 +7,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  build-linux-cpp:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
@@ -23,13 +23,13 @@ jobs:
         run: xmake -y
 
       - name: release
-        uses: OpenSumeru/AkashaDDNS@main
+        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             build/linux/x86_64/release/AkashaDDNS
   
-  build-windows:
+  build-windows-cpp:
     permissions: write-all
     runs-on: windows-latest
     steps:
@@ -39,17 +39,50 @@ jobs:
       - name: get xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
-          xmake-version: latest
-          
+          xmake-version: xmake-io/xmake#branch@dev
+      
       - name: build cpp
         run: xmake -y
 
       - name: release
-        uses: OpenSumeru/AkashaDDNS@main
+        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             build/windows/x64/release/AkashaDDNS.exe
-        
+
+  build-linux-rust:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build
+        run: cargo build --release
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            target/release/AkashaDDNS-rust
+  
+  build-windows-rust:
+    permissions: write-all
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build
+        run: cargo build --release
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            target/release/AkashaDDNS-rust.exe
 
   
