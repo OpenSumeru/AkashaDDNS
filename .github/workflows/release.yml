@@ -41,11 +41,13 @@ jobs:
         with:
           xmake-version: latest
         
-      - name: install openssl3
+      - name: install scoop
         run: |
-            curl -L -o openssl.zip https://slproweb.com/download/Win64OpenSSL-3_0_0.zip
-            Expand-Archive -Path openssl.zip -DestinationPath $PWD/openssl
-            echo "$PWD/openssl/Win64OpenSSL-3_0_0/bin" >> $env:GITHUB_PATH
+            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+            Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
+      - name: install openssl3
+        run: scoop install openssl
 
       - name: build cpp
         run: xmake -y
