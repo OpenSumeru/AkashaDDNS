@@ -19,7 +19,7 @@ jobs:
         with:
           xmake-version: latest
 
-      - name: build cpp
+      - name: build
         run: xmake -y
 
       - name: release
@@ -37,13 +37,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: get xmake
-        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy mingw-w64-x86_64-xmake"
+        run: pacman -Sy mingw-w64-x86_64-xmake --noconfirm
+        shell: C:\msys64\usr\bin\bash.exe
 
-      # - name: update repo
-      #   run: xrepo update-repo
-
-      - name: build cpp
-        run: C:\msys64\usr\bin\bash.exe -l -c "xmake -y"
+      - name: build
+        run: xmake -y
+        shell: C:\msys64\usr\bin\bash.exe
 
       - name: release
         uses: softprops/action-gh-release@v1
