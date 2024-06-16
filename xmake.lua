@@ -1,5 +1,5 @@
 add_languages("cxx20")
-add_requires("nlohmann_json", "cpp-httplib", {config = {ssl = true}})
+add_requires("nlohmann_json", "cpp-httplib <0.15", {config = {ssl = true}})
 
 target("AkashaDDNS")
     add_includedirs("include")
