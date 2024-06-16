@@ -40,14 +40,9 @@ jobs:
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
-        
-      - name: install scoop
-        run: |
-            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-            Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-
-      - name: install openssl3
-        run: scoop install openssl
+      
+      - name: install openssl via chocolatey
+        run: choco upgrade openssl.light
 
       - name: build cpp
         run: xmake -y
