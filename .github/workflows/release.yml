@@ -39,7 +39,7 @@ jobs:
       - name: get xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
-          xmake-version: latest
+          xmake-version: xmake-io/xmake#branch@dev
       
       - name: install openssl via chocolatey
         run: choco upgrade openssl.light
