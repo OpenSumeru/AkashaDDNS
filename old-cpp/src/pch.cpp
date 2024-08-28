@@ -1,14 +1,15 @@
 #include "pch.h"
 
-std::string readFileToString(const std::string& filePath) 
+std::string readFileToString(const std::string &filePath)
 {
     // 打开文件
     std::ifstream file(filePath);
 
     // 检查文件是否成功打开
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         std::cout << "\033[0;31mError opening file: " << filePath << std::endl;
-        return "";  // 返回空字符串表示出错
+        return ""; // 返回空字符串表示出错
     }
 
     // 使用流迭代器将文件内容读取到字符串
@@ -20,17 +21,17 @@ std::string readFileToString(const std::string& filePath)
     return content;
 }
 
-json readFileTojson(const std::string& filePath)
+json readFileTojson(const std::string &filePath)
 {
     std::ifstream fin(filePath);
     auto result = json::parse(fin);
     return result;
 }
 
-std::optional<httplib::Result> safeGet(httplib::Client& client, std::string path, std::vector<int> accept)
+std::optional<httplib::Result> safeGet(httplib::Client &client, std::string path, std::vector<int> accept)
 {
-    auto&& result = client.Get(path);
-    
+    auto &&result = client.Get(path);
+
     if (result.error() != httplib::Error::Success)
     {
         return std::nullopt;
@@ -48,10 +49,11 @@ std::optional<httplib::Result> safeGet(httplib::Client& client, std::string path
     return std::nullopt;
 }
 
-std::optional<httplib::Result> safePut(httplib::Client& client, std::string path, std::string text, std::string type, std::vector<int> accept)
+std::optional<httplib::Result> safePut(httplib::Client &client, std::string path, std::string text, std::string type,
+                                       std::vector<int> accept)
 {
-    auto&& result = client.Put(path, text, type);
-    
+    auto &&result = client.Put(path, text, type);
+
     if (result.error() != httplib::Error::Success)
     {
         return std::nullopt;

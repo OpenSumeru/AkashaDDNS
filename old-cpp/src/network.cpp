@@ -1,9 +1,9 @@
 #include "network.hpp"
 
-bool isIPv4Valid(std::string& ip)
+bool isIPv4Valid(std::string &ip)
 {
     static const std::regex IPv4Pattern("\\d+\\.\\d+\\.\\d+\\.\\d+");
-    if (std::regex_match(ip,IPv4Pattern))
+    if (std::regex_match(ip, IPv4Pattern))
     {
         return true;
     }
@@ -14,10 +14,11 @@ bool isIPv4Valid(std::string& ip)
     }
 }
 
-bool isIPv6Valid(std::string& ip)
+bool isIPv6Valid(std::string &ip)
 {
-    static const std::regex IPv6Pattern("[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+");
-    if (std::regex_match(ip,IPv6Pattern))
+    static const std::regex IPv6Pattern(
+        "[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+");
+    if (std::regex_match(ip, IPv6Pattern))
     {
         return true;
     }
@@ -32,10 +33,10 @@ json getIPv4()
 {
     static httplib::Client client("https://api.seeip.org");
     client.set_address_family(AF_INET);
-    auto getLocalIP = safeGet(client,"/geoip");
+    auto getLocalIP = safeGet(client, "/geoip");
     if (!getLocalIP.has_value())
     {
-        return json{false,false};
+        return json{false, false};
     }
 
     auto result = json::parse(getLocalIP.value()->body);
@@ -47,10 +48,10 @@ json getIPv6()
 {
     static httplib::Client client("https://api.seeip.org");
     client.set_address_family(AF_INET6);
-    auto getLocalIP = safeGet(client,"/geoip");
+    auto getLocalIP = safeGet(client, "/geoip");
     if (!getLocalIP.has_value())
     {
-        return json{false,false};
+        return json{false, false};
     }
 
     auto result = json::parse(getLocalIP.value()->body);

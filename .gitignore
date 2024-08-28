@@ -9,3 +9,4 @@ Cargo.lock
 /.xmake
 /build
 /.cache
+/.vscode
