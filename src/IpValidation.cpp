@@ -1,4 +1,4 @@
-#include <print>
+#include <fmt/printf.h>
 #include <regex>
 
 #include "IpValidation.hpp"
@@ -12,7 +12,7 @@ bool isValidIpV4(const std::string &IpAddress)
     }
     else
     {
-        std::println("\033[0;31mError IPv4 Pattern: IP={}\033[0m", IpAddress);
+        fmt::println("\033[0;31mError IPv4 Pattern: IP={}\033[0m", IpAddress);
         return false;
     }
 }
@@ -27,7 +27,7 @@ bool isValidIpV6(const std::string &IpAddress)
     }
     else
     {
-        std::println("\033[0;31mError IPv6 Pattern: IP={}\033[0m", IpAddress);
+        fmt::println("\033[0;31mError IPv6 Pattern: IP={}\033[0m", IpAddress);
         return false;
     }
 }

@@ -18,14 +18,15 @@ enum class DDNS_API_Code
 class DDNS_API
 {
   public:
-    virtual std::string getRecordIp();
-    virtual std::string getLocalIp();
-    virtual std::string setRecordIp(const std::string &ip);
+    virtual std::string getRecordIp() = 0;
+    virtual std::string getLocalIp() = 0;
+    virtual std::string setRecordIp(const std::string &ip) = 0;
+    virtual void printIpInfo(const std::string &ip);
     DDNS_API(IpVersion version = IpVersion::V4);
     DDNS_API_Code ddnsCycle();
+    std::function<bool(const std::string &)> isValidIp;
 
   private:
-    std::function<bool(const std::string &)> isValidIp;
     IpVersion version_;
 };
 

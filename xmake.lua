@@ -1,15 +1,14 @@
-add_languages("cxx23")
+add_languages("cxx20")
 add_requires("cpp-httplib", {configs = {ssl = true}})
 add_requires("nlohmann_json")
-
-set_policy("check.auto_map_flags", true)
+add_requires("fmt")
 
 target("AkashaDDNS")
     set_kind("binary")
     add_includedirs("include")
     add_files("src/*.cpp")
     set_pcxxheader("include/pch.hpp")
-    add_packages("nlohmann_json", "cpp-httplib")
+    add_packages("nlohmann_json", "cpp-httplib","fmt")
 
     add_cxxflags("/utf-8")
 

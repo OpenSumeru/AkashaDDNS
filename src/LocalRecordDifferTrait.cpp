@@ -1,4 +1,4 @@
-#include <print>
+#include <fmt/printf.h>
 
 #include "LocalRecordDifferTrait.hpp"
 
@@ -28,21 +28,21 @@ std::string LRDiffer_API::getLocalIp()
     try
     {
         j = json::parse(result.value().body);
-        ip = j["ip"];
+        ip = j["ip"].get<std::string>();
     }
     catch (json::parse_error &error)
     {
-        std::println("\033[0;31mParse error: {}\033[0m", error.what());
+        fmt::println("\033[0;31mParse error: {}\033[0m", error.what());
         ip = error.what();
     }
     catch (json::out_of_range &error)
     {
-        std::println("\033[0;31mOut of range error: {}\033[0m", error.what());
+        fmt::println("\033[0;31mOut of range error: {}\033[0m", error.what());
         ip = error.what();
     }
     catch (std::exception &error)
     {
-        std::println("\033[0;31mGeneral error:: {}\033[0m", error.what());
+        fmt::println("\033[0;31mGeneral error:: {}\033[0m", error.what());
         ip = error.what();
     }
     return ip;

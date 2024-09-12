@@ -1,13 +1,15 @@
-#include <print>
+#include <fmt/printf.h>
 #include <string>
 
+#include "httplib.h"
 #include "pch.hpp"
 
 int main(int argc, char **argv)
 {
+    argc = 2;
     if (argc < 2)
     {
-        std::println("\033[0;31mToo few parameters\033[0m");
+        fmt::println("\033[0;31mToo few parameters\033[0m");
         return -1;
     }
 

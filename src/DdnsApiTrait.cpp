@@ -1,6 +1,12 @@
-#include <print>
+#include <fmt/printf.h>
 
 #include "DdnsApiTrait.hpp"
+#include "fmt/base.h"
+
+void DDNS_API::printIpInfo(const std::string &ip)
+{
+    fmt::println("No ip information for {}", ip);
+}
 
 DDNS_API::DDNS_API(IpVersion version) : version_{version}
 {
@@ -31,17 +37,18 @@ DDNS_API_Code DDNS_API::ddnsCycle()
     {
         return DDNS_API_Code::NO_CHANGE;
     }
-    std::println("Changing IP record from {} to {}", ipRecord, ip);
+    fmt::println("Changing IP record from {} to {}", ipRecord, ip);
+    printIpInfo(ip);
     if (setRecordIp(ip) != ip)
     {
-        std::println("\033[0;31mSet IP record Error\033[0m");
+        fmt::println("\033[0;31mSet IP record Error\033[0m");
         return DDNS_API_Code::SETTING_IP_ERROR;
     }
     if (getRecordIp() != ip)
     {
-        std::println("\033[0;31mChange IP record Error\033[0m");
+        fmt::println("\033[0;31mChange IP record Error\033[0m");
         return DDNS_API_Code::CHANGE_IP_ERROR;
     }
-    std::println("\033[0;32mSuccessfully change local IP to {}\033[0m", ip);
+    fmt::println("\033[0;32mSuccessfully change local IP to {}\033[0m", ip);
     return DDNS_API_Code::IP_CHANGED;
 }
