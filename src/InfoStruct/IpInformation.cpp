@@ -1,7 +1,7 @@
 #include <format>
 #include <iostream>
 
-#include "IpInformation.hpp"
+#include "InfoStruct/IpInformation.hpp"
 
 void IpInfo::setIpInfo(const json &j)
 {

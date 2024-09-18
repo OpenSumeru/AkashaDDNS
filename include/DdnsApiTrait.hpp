@@ -5,8 +5,8 @@
 #include <string>
 #include <utility>
 
-#include "IpInformation.hpp"
-#include "IpValidation.hpp"
+#include "InfoStruct/IpInformation.hpp"
+#include "ReuseFn/IpValidation.hpp"
 
 enum class DDNS_API_Code
 {
