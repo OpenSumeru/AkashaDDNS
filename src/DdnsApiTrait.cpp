@@ -1,11 +1,15 @@
 #include <fmt/printf.h>
 
 #include "DdnsApiTrait.hpp"
-#include "fmt/base.h"
 
-void DDNS_API::printIpInfo(const std::string &ip)
+void DDNS_API::printIpInfo()
 {
-    fmt::println("No ip information for {}", ip);
+    auto &[info, isRenew] = ipInfo;
+    if (isRenew)
+    {
+        info.printIpInfo();
+        isRenew = false;
+    }
 }
 
 DDNS_API::DDNS_API(IpVersion version) : version_{version}
@@ -38,7 +42,7 @@ DDNS_API_Code DDNS_API::ddnsCycle()
         return DDNS_API_Code::NO_CHANGE;
     }
     fmt::println("Changing IP record from {} to {}", ipRecord, ip);
-    printIpInfo(ip);
+    printIpInfo();
     if (setRecordIp(ip) != ip)
     {
         fmt::println("\033[0;31mSet IP record Error\033[0m");

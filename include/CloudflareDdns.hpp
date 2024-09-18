@@ -6,6 +6,11 @@
 #include "DdnsApiTrait.hpp"
 #include "pch.hpp"
 
+struct CfIpInfo : IpInfo
+{
+    void setIpInfo(const json &j) override;
+};
+
 class CF_API
 {
   public:

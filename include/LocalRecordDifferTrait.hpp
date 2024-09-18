@@ -4,6 +4,11 @@
 #include "DdnsApiTrait.hpp"
 #include "pch.hpp"
 
+struct SeeIpInfo : IpInfo
+{
+    void setIpInfo(const json &j) override;
+};
+
 class LRDiffer_API : public DDNS_API
 {
   public:

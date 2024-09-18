@@ -3,7 +3,9 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 
+#include "IpInformation.hpp"
 #include "IpValidation.hpp"
 
 enum class DDNS_API_Code
@@ -21,10 +23,13 @@ class DDNS_API
     virtual std::string getRecordIp() = 0;
     virtual std::string getLocalIp() = 0;
     virtual std::string setRecordIp(const std::string &ip) = 0;
-    virtual void printIpInfo(const std::string &ip);
+    virtual void printIpInfo();
     DDNS_API(IpVersion version = IpVersion::V4);
     DDNS_API_Code ddnsCycle();
     std::function<bool(const std::string &)> isValidIp;
+
+  protected:
+    std::pair<IpInfo, bool> ipInfo;
 
   private:
     IpVersion version_;
