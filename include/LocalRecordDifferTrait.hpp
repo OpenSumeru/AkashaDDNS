@@ -13,7 +13,7 @@ class LRDiffer_API : public DDNS_API
 {
   public:
     virtual std::string getLocalIp() override;
-    LRDiffer_API(IpVersion version = IpVersion::V4, const std::string &getIpApi = "https://api.seeip.org");
+    LRDiffer_API(IpVersion version = IpVersion::V4, std::string getIpApi = "https://api.seeip.org");
 
   private:
     httplib::Client getLocalClient_;

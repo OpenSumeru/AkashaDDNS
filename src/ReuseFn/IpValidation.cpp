@@ -3,7 +3,7 @@
 
 #include "ReuseFn/IpValidation.hpp"
 
-bool isValidIpV4(const std::string &IpAddress)
+bool isValidIpV4(std::string IpAddress)
 {
     static const std::regex IPv4Pattern("\\d+\\.\\d+\\.\\d+\\.\\d+");
     if (std::regex_match(IpAddress, IPv4Pattern))
@@ -17,7 +17,7 @@ bool isValidIpV4(const std::string &IpAddress)
     }
 }
 
-bool isValidIpV6(const std::string &IpAddress)
+bool isValidIpV6(std::string IpAddress)
 {
     static const std::regex IPv6Pattern(
         "[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+:[0-9a-z]+");

@@ -1,9 +1,9 @@
-#ifndef IP_INFORMATION
-#define IP_INFORMATION
+#ifndef IP_INFORMATION_HPP
+#define IP_INFORMATION_HPP
 #include <optional>
 #include <string>
 
-#include "pch.hpp"
+#include "../pch.hpp"
 
 struct IpInfo
 {

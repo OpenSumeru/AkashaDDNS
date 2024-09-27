@@ -16,8 +16,7 @@ void SeeIpInfo::setIpInfo(const json &j)
     longitude = j.contains("longitude") ? std::make_optional(j["longitude"].get<double>()) : std::nullopt;
 }
 
-LRDiffer_API::LRDiffer_API(IpVersion version, const std::string &getIpApi)
-    : getLocalClient_(getIpApi), DDNS_API(version)
+LRDiffer_API::LRDiffer_API(IpVersion version, std::string getIpApi) : getLocalClient_(getIpApi), DDNS_API(version)
 {
     auto &[info, isRenew] = ipInfo;
     info = SeeIpInfo();

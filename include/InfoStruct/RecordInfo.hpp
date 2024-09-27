@@ -1,9 +1,7 @@
-#ifndef RECORD_INFO
-#define RECORD_INFO
+#ifndef RECORD_INFO_HPP
+#define RECORD_INFO_HPP
 #include <optional>
 #include <string>
-
-#include "pch.hpp"
 
 struct RecordInfo
 {

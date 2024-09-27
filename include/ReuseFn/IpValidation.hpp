@@ -3,8 +3,8 @@
 
 #include <string>
 
-bool isValidIpV4(const std::string &IpAddress);
-bool isValidIpV6(const std::string &IpAddress);
+bool isValidIpV4(std::string IpAddress);
+bool isValidIpV6(std::string IpAddress);
 
 enum class IpVersion
 {
