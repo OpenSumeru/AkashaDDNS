@@ -1,3 +1,6 @@
+add_rules("mode.release", "mode.debug")
+add_rules("plugin.compile_commands.autoupdate", {outputdir = "./"})
+
 add_languages("cxx20")
 add_requires("cpp-httplib", {configs = {ssl = true}})
 add_requires("nlohmann_json")
