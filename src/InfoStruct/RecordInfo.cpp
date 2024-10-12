@@ -1,1 +1,0 @@
-#include "InfoStruct/RecordInfo.hpp"
