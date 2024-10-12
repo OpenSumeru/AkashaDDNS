@@ -43,7 +43,8 @@ jobs:
       
       - name: install openssl via chocolatey
         run: choco upgrade openssl.light
-
+      - name: use clang-cl
+        run: xmake f --toolchain=clang-cl
       - name: build cpp
         run: xmake -y
 

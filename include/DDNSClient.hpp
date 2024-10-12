@@ -3,6 +3,7 @@
 
 #include "ILogger.hpp"
 #include "IProvider.hpp"
+#include <atomic>
 #include <memory>
 #include <string>
 
