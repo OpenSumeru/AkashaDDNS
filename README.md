@@ -1,149 +1,223 @@
 # AkashaDDNS
-A simple DDNS updater using cloudflare API
+
+**AkashaDDNS** is a Dynamic DNS (DDNS) client written in C++ that supports multiple DNS providers, including Cloudflare and Aliyun. It allows users to keep their domain names updated with their current public IP addresses, ensuring seamless access to services hosted on dynamic IPs.
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-2. [Usage](#usage)
-3. [Build](#build)
-4. [Dependence](#dependence)
-5. [Rust Version](#rust-version)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Logging](#logging)
+- [Contributing](#contributing)
+- [Todo](#todo)
+- [License](#license)
 
-## Introduction
+## Features
 
-This project is a **simple small** DDNS updater using cloudflare API. 
+- **Multi-Provider Support**: Compatible with Cloudflare and Aliyun DNS providers.
+- **Configuration Flexibility**: Configure via JSON files or command-line arguments.
+- **Robust Logging**: Logs all activities to a file and selectively outputs important messages to the console.
+- **Automatic IP Detection**: Retrieves the current public IP using external services.
+- **Graceful Shutdown**: Handles system signals for safe termination.
+- **Extensible Design**: Easily add support for additional DNS providers.
 
-### Advantages
+## Prerequisites
 
-1. **Small**: This would probably this smallest DDNS updater for both the size of the execution file and the memory footprint.
+- **C++17** or higher
+- **CMake** or **xmake** (build system)
+- **C++ Libraries**:
+  - [spdlog](https://github.com/gabime/spdlog) (for logging)
+  - [nlohmann/json](https://github.com/nlohmann/json) (for JSON parsing)
+  - [cxxopts](https://github.com/jarro2783/cxxopts) (for command-line argument parsing)
+  - [cpp-httplib](https://github.com/yhirose/cpp-httplib) (for HTTP requests)
 
-2. Stable: This project has been run on my test server for months.
+Ensure that you have these dependencies installed and accessible to your build system.
 
-### About the development of the project
+## Installation
 
-We try to use [cpp-httplib](https://github.com/yhirose/cpp-httplib) to make a fully C++ based DDNS updater while most DDNS projects are based on Python or Go. **Make C++ Great Again**.
+### Using xmake
 
-## Usage
+1. **Clone the Repository**:
 
-### Basic Run
+    ```bash
+    git clone https://github.com/yourusername/AkashaDDNS.git
+    cd AkashaDDNS
+    ```
 
-Run this project
+2. **Install Dependencies**:
 
-```bash
-./AkashaDDNS config.json
-```
+    Ensure that `xmake` is installed on your system. If not, install it from [xmake.io](https://xmake.io/#/guide/installation).
 
-To write config.json, you should replace all 123 in the following json example.
+3. **Build the Project**:
 
-API Key **must include** the accessibility to read and edit the ``API Key Type``. API-Key-Type have two choice ``Auth`` or other else. This depend on whether your api key is for your  or not.
+    ```bash
+    xmake
+    ```
 
-IP Version must be ``IPv4`` or ``IPv6``.
+4. **Run the Application**:
+
+    ```bash
+    xmake run AkashaDDNS --help
+    ```
+
+## Configuration
+
+AkashaDDNS can be configured using a JSON configuration file or via command-line arguments. Command-line arguments take precedence over configuration file settings.
+
+### Configuration File
+
+Create a `config.json` file in the project directory with the following structure:
 
 ```json
 {
-    "Header":
-    {
-        "API-Key-Type":"Zone",
-        "API-Key":"123",
-        "Email":"test@example.com"
-    },
-    "Zone":
-    {
-        "Name":"example.com"
-    },
-    "Target":
-    {
-        "DNS-Name":"test.example.com"
-    },
-    "Setting":
-    {
-        "IP-Version":"IPv4"
-    }
+    "provider": "cloudflare",
+    "token": "your_cloudflare_api_token",
+    "access_key_id": "your_aliyun_access_key_id",
+    "access_key_secret": "your_aliyun_access_key_secret",
+    "record_id": "your_aliyun_record_id",
+    "zone_id": "your_aliyun_zone_id",
+    "record_name": "www.example.com",
+    "email": "user@example.com",
+    "update_interval": 300
 }
 ```
 
-### Auto Restart
+**Parameters**:
 
-To make AkashaDDNS a service, you can run this code by shell. Please replace /path/to into your path.
+- `provider`: DNS provider (`cloudflare` or `aliyun`).
+- `token`: API token for Cloudflare.
+- `access_key_id`: Access Key ID for Aliyun.
+- `access_key_secret`: Access Key Secret for Aliyun.
+- `record_id`: DNS record ID for Aliyun.
+- `zone_id`: DNS zone ID for Aliyun.
+- `record_name`: The DNS record to update (e.g., `www.example.com`).
+- `email`: Email address for Cloudflare authentication.
+- `update_interval`: Time interval (in seconds) between IP updates.
 
-```bash
-sudo su
-
-cat << EOF > /etc/systemd/system/akashaddns.service
-Description=AkashaDDNS Service
-After=network-online.target
-Wants=network-online.target
-[Service]
-ExecStart=/path/to/AkashaDDNS /path/to/config.json
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl enable akashaddns
-```
-
-To start or stop AkashaDDNS
+### Command-Line Arguments
 
 ```bash
-sudo systemctl start akashaddns
-sudo systemctl stop akashaddns
+AkashaDDNS [OPTIONS]
 ```
 
-To look up the log of AkashaDDNS
+**Options**:
+
+- `-c, --config`           Configuration file (default: `config.json`)
+- `-p, --provider`         DNS Provider (`cloudflare`, `aliyun`)
+- `-t, --token`            API Token (for Cloudflare)
+- `-a, --access-key-id`    Access Key ID (for Aliyun)
+- `-s, --access-key-secret Access Key Secret (for Aliyun)
+- `-r, --record-name`      Record name to update (e.g., `www.example.com`)
+- `-e, --email`            Email address for Cloudflare authentication
+- `-h, --help`             Print usage
+```
+
+**Example**:
 
 ```bash
-sudo systemctl status akashaddns
+xmake run AkashaDDNS -- --provider cloudflare --record-name www.example.com --email user@example.com --token your_cloudflare_api_token
 ```
 
-## Build with XMake
+## Usage
 
-To build the project, first install [XMake](https://xmake.io/). Then run
+Once configured, AkashaDDNS will periodically check your public IP address and update the specified DNS record if a change is detected.
+
+### Running the Application
 
 ```bash
-xmake
+xmake run AkashaDDNS --provider cloudflare --record-name www.example.com --email user@example.com --token your_cloudflare_api_token
 ```
 
-## Old Build
+### Example Output
 
-Please Install All [Dependence](#build-dependence) before building.
+**Console**:
 
-To build debug version, run
-
-```bash
-make AkashaDDNS
+```
+Startup parameters: provider=Cloudflare, record_name=www.example.com, domain=example.com
+IP change detected: old_ip=203.0.113.2, new_ip=203.0.113.3
 ```
 
-To build other versions, run
+**Log File (`AkashaDDNS.log`)**:
 
-```bash
-make AkashaDDNS Version=release
-make AkashaDDNS Version=release-min
+```
+[2024-04-27 12:00:00] [info] Logger initialized successfully.
+[2024-04-27 12:00:00] [info] Startup parameters: provider=Cloudflare, record_name=www.example.com, domain=example.com
+[2024-04-27 12:00:00] [info] Public IP: 203.0.113.1
+[2024-04-27 12:00:00] [info] Country: Exampleland
+[2024-04-27 12:00:00] [info] Region: Example Region
+[2024-04-27 12:00:00] [info] City: Example City
+[2024-04-27 12:00:00] [info] Current DNS IP: 203.0.113.2
+[2024-04-27 12:00:00] [info] IP change detected: old_ip=203.0.113.2, new_ip=203.0.113.3
+[2024-04-27 12:00:00] [info] Successfully updated DNS record for record: www.example.com
+[2024-04-27 12:00:00] [info] Sleeping for 300 seconds...
 ```
 
-To build all versions, run
+## Logging
 
-```bash
-make all
-```
+AkashaDDNS utilizes the `spdlog` library for logging. It maintains a log file named `AkashaDDNS.log` that records all activities. Additionally, it selectively outputs important log messages to the console based on predefined keywords.
 
-## Dependence
+### Log Levels
 
-### All Third Party Library
+- **Trace**: Detailed information, typically of interest only when diagnosing problems.
+- **Debug**: Information useful to developers for debugging the application.
+- **Info**: Confirmation that things are working as expected.
+- **Warn**: An indication that something unexpected happened, or indicative of some problem in the near future.
+- **Error**: Due to a more serious problem, the software has not been able to perform some function.
+- **Critical**: A serious error, indicating that the program itself may be unable to continue running.
 
-[cpp-httplib](https://github.com/yhirose/cpp-httplib)
+### Log Filtering
 
-[nlohmann-json](https://github.com/nlohmann/json)
+- **File Logging**: All log messages (from `trace` level and above) are recorded in `AkashaDDNS.log`.
+- **Console Logging**: Only log messages containing specific keywords (e.g., `"IP change"`, `"Startup parameters"`) are displayed in the console.
 
-OpenSSL (3.0+)
+## Contributing
 
-### Build Dependence
+Contributions are welcome! Please follow these steps:
 
-- [ ] OpenSSL (3.0+) **You should install it** follow the instruction in cpp-httplib
-- [ ] [nlohmann-json](https://github.com/nlohmann/json) **You should install it** into your system include path
-- [ ] [cpp-httplib](https://github.com/yhirose/cpp-httplib)
+1. **Fork the Repository**: Click the "Fork" button at the top right of this page.
+2. **Clone Your Fork**:
 
-## Rust Version
+    ```bash
+    git clone https://github.com/yourusername/AkashaDDNS.git
+    cd AkashaDDNS
+    ```
 
-[AkashaDDNS-rust](/rust/README.md)
+3. **Create a Feature Branch**:
+
+    ```bash
+    git checkout -b feature/YourFeature
+    ```
+
+4. **Commit Your Changes**:
+
+    ```bash
+    git commit -m "Add your detailed description of changes"
+    ```
+
+5. **Push to Your Fork**:
+
+    ```bash
+    git push origin feature/YourFeature
+    ```
+
+6. **Open a Pull Request**: Go to the original repository and open a pull request.
+
+## Todo
+
+- **Fix Logging Bug**: Currently, there is an issue where the log file (`AkashaDDNS.log`) remains empty despite successful compilation and execution. The problem is related to the `KeywordFilter` class not properly forwarding log messages to the file sink. This needs to be investigated and resolved to ensure all log messages are correctly recorded in the log file.
+
+- **Add Support for Additional DNS Providers**: Extend AkashaDDNS to support more DNS providers beyond Cloudflare and Aliyun.
+
+- **Enhance Error Handling and Retry Mechanisms**: Implement more robust error handling and retry logic for network requests and API interactions.
+
+- **Implement Unit Tests**: Develop comprehensive unit tests to ensure the reliability and stability of all components.
+
+- **Improve Configuration Management**: Enhance the configuration system to support more flexible and secure parameter handling, possibly including encrypted credentials.
+
+- **Optimize Performance**: Explore opportunities to optimize the application's performance, especially in logging and network operations.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
