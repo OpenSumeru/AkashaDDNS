@@ -30,7 +30,9 @@ target("AkashaDDNS")
 
     add_packages("cpp-httplib", "nlohmann_json", "cxxopts")
 
-    add_cxxflags("/utf-8")
+    if is_plat("windows") then
+        add_cxxflags("/utf-8")
+    end
 
 target_end()
 
@@ -41,6 +43,8 @@ target("AkashaDDNS-Old")
     set_pcxxheader("old-cpp/include/pch.h")
     add_packages("nlohmann_json", "cpp-httplib")
 
-    add_cxxflags("/utf-8")
+    if is_plat("windows") then
+        add_cxxflags("/utf-8")
+    end
 
 target_end()
