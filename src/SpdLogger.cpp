@@ -1,3 +1,5 @@
+#ifdef USE_SPDLOG
+
 #include "SpdLogger.hpp"
 #include "KeywordFilter.hpp"
 #include <iostream>
@@ -53,3 +55,5 @@ void SpdLogger::warning(const std::string &message)
 {
     m_logger->warn(message);
 }
+
+#endif

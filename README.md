@@ -10,8 +10,8 @@
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Logging](#logging)
+- [Known Issues](#known-issues)
 - [Contributing](#contributing)
-- [Todo](#todo)
 - [License](#license)
 
 ## Features
@@ -22,16 +22,17 @@
 - **Automatic IP Detection**: Retrieves the current public IP using external services.
 - **Graceful Shutdown**: Handles system signals for safe termination.
 - **Extensible Design**: Easily add support for additional DNS providers.
+- **Optional `spdlog` Integration**: Choose between `spdlog` and a custom logging implementation based on build options.
 
 ## Prerequisites
 
-- **C++17** or higher
-- **CMake** or **xmake** (build system)
+- **C++20** or higher
+- **xmake** (build system)
 - **C++ Libraries**:
-  - [spdlog](https://github.com/gabime/spdlog) (for logging)
+  - [cpp-httplib](https://github.com/yhirose/cpp-httplib) (for HTTP requests)
   - [nlohmann/json](https://github.com/nlohmann/json) (for JSON parsing)
   - [cxxopts](https://github.com/jarro2783/cxxopts) (for command-line argument parsing)
-  - [cpp-httplib](https://github.com/yhirose/cpp-httplib) (for HTTP requests)
+  - **Optional:** [spdlog](https://github.com/gabime/spdlog) (for logging)
 
 Ensure that you have these dependencies installed and accessible to your build system.
 
@@ -50,13 +51,20 @@ Ensure that you have these dependencies installed and accessible to your build s
 
     Ensure that `xmake` is installed on your system. If not, install it from [xmake.io](https://xmake.io/#/guide/installation).
 
-3. **Build the Project**:
+3. **Build the Project with `spdlog` (Default)**:
 
     ```bash
     xmake
     ```
 
-4. **Run the Application**:
+4. **Build the Project without `spdlog`**:
+
+    ```bash
+    xmake f -o --no-use_spdlog
+    xmake
+    ```
+
+5. **Run the Application**:
 
     ```bash
     xmake run AkashaDDNS --help
@@ -104,20 +112,19 @@ AkashaDDNS [OPTIONS]
 
 **Options**:
 
-- `-c, --config`           Configuration file (default: `config.json`)
-- `-p, --provider`         DNS Provider (`cloudflare`, `aliyun`)
-- `-t, --token`            API Token (for Cloudflare)
-- `-a, --access-key-id`    Access Key ID (for Aliyun)
-- `-s, --access-key-secret Access Key Secret (for Aliyun)
-- `-r, --record-name`      Record name to update (e.g., `www.example.com`)
-- `-e, --email`            Email address for Cloudflare authentication
-- `-h, --help`             Print usage
-```
+- `-c, --config`               Configuration file (default: `config.json`)
+- `-p, --provider`             DNS Provider (`cloudflare`, `aliyun`)
+- `-t, --token`                API Token (for Cloudflare)
+- `-a, --access-key-id`        Access Key ID (for Aliyun)
+- `-s, --access-key-secret`    Access Key Secret (for Aliyun)
+- `-r, --record-name`          Record name to update (e.g., `www.example.com`)
+- `-e, --email`                Email address for Cloudflare authentication
+- `-h, --help`                 Print usage
 
 **Example**:
 
 ```bash
-xmake run AkashaDDNS -- --provider cloudflare --record-name www.example.com --email user@example.com --token your_cloudflare_api_token
+xmake run AkashaDDNS --provider cloudflare --record-name www.example.com --email user@example.com --token your_cloudflare_api_token
 ```
 
 ## Usage
@@ -126,97 +133,95 @@ Once configured, AkashaDDNS will periodically check your public IP address and u
 
 ### Running the Application
 
+**With `spdlog` (Default):**
+
 ```bash
 xmake run AkashaDDNS --provider cloudflare --record-name www.example.com --email user@example.com --token your_cloudflare_api_token
 ```
 
+**Without `spdlog`:**
+
+```bash
+xmake run AkashaDDNS --provider cloudflare --record-name www.example.com --email user@example.com --token your_cloudflare_api_token
+```
+
+**Note:** The usage remains the same; the difference is in how logging is handled internally based on the build option.
+
 ### Example Output
 
-**Console**:
+**Console** (Only messages containing keywords will be displayed):
 
 ```
 Startup parameters: provider=Cloudflare, record_name=www.example.com, domain=example.com
 IP change detected: old_ip=203.0.113.2, new_ip=203.0.113.3
 ```
 
-**Log File (`AkashaDDNS.log`)**:
+**Log File (`AkashaDDNS.log`)** (All log messages are recorded):
 
 ```
-[2024-04-27 12:00:00] [info] Logger initialized successfully.
-[2024-04-27 12:00:00] [info] Startup parameters: provider=Cloudflare, record_name=www.example.com, domain=example.com
-[2024-04-27 12:00:00] [info] Public IP: 203.0.113.1
-[2024-04-27 12:00:00] [info] Country: Exampleland
-[2024-04-27 12:00:00] [info] Region: Example Region
-[2024-04-27 12:00:00] [info] City: Example City
-[2024-04-27 12:00:00] [info] Current DNS IP: 203.0.113.2
-[2024-04-27 12:00:00] [info] IP change detected: old_ip=203.0.113.2, new_ip=203.0.113.3
-[2024-04-27 12:00:00] [info] Successfully updated DNS record for record: www.example.com
-[2024-04-27 12:00:00] [info] Sleeping for 300 seconds...
+[2024-04-27 12:00:00.123] [INFO] Logger initialized successfully.
+[2024-04-27 12:00:00.124] [INFO] Startup parameters: provider=Cloudflare, record_name=www.example.com, domain=example.com
+[2024-04-27 12:00:00.125] [INFO] Public IP: 203.0.113.1
+[2024-04-27 12:00:00.126] [INFO] Country: Exampleland
+[2024-04-27 12:00:00.127] [INFO] Region: Example Region
+[2024-04-27 12:00:00.128] [INFO] City: Example City
+[2024-04-27 12:00:00.129] [INFO] Current DNS IP: 203.0.113.2
+[2024-04-27 12:00:00.130] [INFO] IP change detected: old_ip=203.0.113.2, new_ip=203.0.113.3
+[2024-04-27 12:00:00.131] [INFO] Successfully updated DNS record for record: www.example.com
+[2024-04-27 12:00:00.132] [INFO] Sleeping for 300 seconds...
 ```
 
 ## Logging
 
-AkashaDDNS utilizes the `spdlog` library for logging. It maintains a log file named `AkashaDDNS.log` that records all activities. Additionally, it selectively outputs important log messages to the console based on predefined keywords.
+AkashaDDNS utilizes a flexible logging system that can use either `spdlog` or a custom logger based on build configurations.
 
-### Log Levels
+### With `spdlog`
 
-- **Trace**: Detailed information, typically of interest only when diagnosing problems.
-- **Debug**: Information useful to developers for debugging the application.
-- **Info**: Confirmation that things are working as expected.
-- **Warn**: An indication that something unexpected happened, or indicative of some problem in the near future.
-- **Error**: Due to a more serious problem, the software has not been able to perform some function.
-- **Critical**: A serious error, indicating that the program itself may be unable to continue running.
+- **File Logging:** All log messages (`INFO`, `WARN`, `ERROR`) are recorded in `AkashaDDNS.log`.
+- **Console Logging:** Only log messages containing specific keywords (e.g., `"IP change"`, `"Startup parameters"`) are displayed in the console.
 
-### Log Filtering
+### With `CustomLogger`
 
-- **File Logging**: All log messages (from `trace` level and above) are recorded in `AkashaDDNS.log`.
-- **Console Logging**: Only log messages containing specific keywords (e.g., `"IP change"`, `"Startup parameters"`) are displayed in the console.
+- **File Logging:** All log messages (`INFO`, `WARN`, `ERROR`) are recorded in `AkashaDDNS.log`.
+- **Console Logging:** Only log messages containing specific keywords (e.g., `"IP change"`, `"Startup parameters"`) are displayed in the console.
+
+**Note:** The behavior is consistent regardless of the logging implementation, ensuring seamless integration.
+
+## Known Issues
+
+- **Log File Writing in Build Folder:** When building the project using `xmake`, the log file (`AkashaDDNS.log`) may not be written correctly within the build directory. Ensure that the application has the necessary permissions to create and write to log files in the desired directory. As a workaround, consider specifying an absolute path for the log file in the `CustomLogger` configuration or adjust the working directory to a location with appropriate write permissions.
 
 ## Contributing
 
 Contributions are welcome! Please follow these steps:
 
-1. **Fork the Repository**: Click the "Fork" button at the top right of this page.
-2. **Clone Your Fork**:
+1. **Fork the Repository:** Click the "Fork" button at the top right of this page.
+2. **Clone Your Fork:**
 
     ```bash
     git clone https://github.com/yourusername/AkashaDDNS.git
     cd AkashaDDNS
     ```
 
-3. **Create a Feature Branch**:
+3. **Create a Feature Branch:**
 
     ```bash
     git checkout -b feature/YourFeature
     ```
 
-4. **Commit Your Changes**:
+4. **Commit Your Changes:**
 
     ```bash
     git commit -m "Add your detailed description of changes"
     ```
 
-5. **Push to Your Fork**:
+5. **Push to Your Fork:**
 
     ```bash
     git push origin feature/YourFeature
     ```
 
-6. **Open a Pull Request**: Go to the original repository and open a pull request.
-
-## Todo
-
-- **Fix Logging Bug**: Currently, there is an issue where the log file (`AkashaDDNS.log`) remains empty despite successful compilation and execution. The problem is related to the `KeywordFilter` class not properly forwarding log messages to the file sink. This needs to be investigated and resolved to ensure all log messages are correctly recorded in the log file.
-
-- **Add Support for Additional DNS Providers**: Extend AkashaDDNS to support more DNS providers beyond Cloudflare and Aliyun.
-
-- **Enhance Error Handling and Retry Mechanisms**: Implement more robust error handling and retry logic for network requests and API interactions.
-
-- **Implement Unit Tests**: Develop comprehensive unit tests to ensure the reliability and stability of all components.
-
-- **Improve Configuration Management**: Enhance the configuration system to support more flexible and secure parameter handling, possibly including encrypted credentials.
-
-- **Optimize Performance**: Explore opportunities to optimize the application's performance, especially in logging and network operations.
+6. **Open a Pull Request:** Go to the original repository and open a pull request.
 
 ## License
 

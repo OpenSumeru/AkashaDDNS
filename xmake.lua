@@ -1,17 +1,34 @@
 add_rules("mode.release", "mode.debug")
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "./"})
 
+option("use_spdlog")
+    set_description("Enable spdlog for logging")
+    set_default(true)
+    set_showmenu(true)
+option_end()
+
+if has_config("use_spdlog") then
+    add_requires("spdlog >=1.14.1", {optional = false})
+end
+
 add_languages("cxx20")
 add_requires("cpp-httplib", {configs = {ssl = true}})
 add_requires("nlohmann_json")
-add_requires("spdlog >=1.14.1")
 add_requires("cxxopts")
 
 target("AkashaDDNS")
     set_kind("binary")
     add_includedirs("include")
     add_files("src/*.cpp")
-    add_packages("cpp-httplib", "nlohmann_json", "spdlog", "cxxopts")
+
+    if has_config("use_spdlog") then
+        add_packages("spdlog")
+        add_defines("USE_SPDLOG")
+    else
+        add_defines("USE_CUSTOM_LOGGER")
+    end
+
+    add_packages("cpp-httplib", "nlohmann_json", "cxxopts")
 
     add_cxxflags("/utf-8")
 

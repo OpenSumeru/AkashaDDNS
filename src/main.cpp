@@ -4,11 +4,16 @@
 #include "CloudflareService.hpp"
 #include "ConfigManager.hpp"
 #include "DDNSClient.hpp"
-#include "SpdLogger.hpp"
 #include <csignal>
 #include <cxxopts.hpp>
 #include <iostream>
 #include <memory>
+
+#ifdef USE_SPDLOG
+#include "SpdLogger.hpp"
+#else
+#include "CustomLogger.hpp"
+#endif
 
 // 工具函数：从完整的记录名中提取域名
 std::string extractDomain(const std::string &recordName)
@@ -86,7 +91,14 @@ int main(int argc, char *argv[])
             return -1;
         }
 
+        // Instantiate logger based on the defined macro
+#ifdef USE_SPDLOG
         std::shared_ptr<ILogger> logger = std::make_shared<SpdLogger>();
+#else
+        // Define console keywords
+        std::vector<std::string> consoleKeywords = {"IP change", "Startup parameters"};
+        std::shared_ptr<ILogger> logger = std::make_shared<CustomLogger>("AkashaDDNS.log", consoleKeywords);
+#endif
 
         std::unique_ptr<IProvider> provider;
 
