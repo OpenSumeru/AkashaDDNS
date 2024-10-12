@@ -13,6 +13,10 @@ DDNSClient::DDNSClient(std::unique_ptr<IProvider> provider, std::shared_ptr<ILog
 
 void DDNSClient::run(const std::string &recordName, const std::string &domain)
 {
+    // 记录启动参数，包含关键词 "Startup parameters"
+    m_logger->info("Startup parameters: provider=" + m_provider->getProviderName() + ", record_name=" + recordName +
+                   ", domain=" + domain);
+
     while (m_running)
     {
         std::string ipInfo = getPublicIP();
@@ -38,7 +42,8 @@ void DDNSClient::run(const std::string &recordName, const std::string &domain)
                     m_logger->info("Current DNS IP: " + currentDNSIP);
                     if (currentIP != currentDNSIP)
                     {
-                        m_logger->info("IP mismatch detected. Updating DNS record...");
+                        // 记录 IP 更改，包含关键词 "IP change"
+                        m_logger->info("IP change detected: old_ip=" + currentDNSIP + ", new_ip=" + currentIP);
                         m_provider->updateDNS(recordName, domain, currentIP);
                     }
                     else

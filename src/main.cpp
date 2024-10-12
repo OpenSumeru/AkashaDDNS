@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 
+// 工具函数：从完整的记录名中提取域名
 std::string extractDomain(const std::string &recordName)
 {
     size_t pos = recordName.find('.');
