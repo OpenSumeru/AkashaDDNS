@@ -41,10 +41,14 @@ jobs:
         with:
           xmake-version: xmake-io/xmake#branch@dev
       
-      - name: install MinGW via chocolatey
-        run: choco install mingw
+      - name: install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
 
-      - name: use clang-cl
+      - name: use MinGW
         run: xmake f -p mingw -y
         
       - name: build cpp
