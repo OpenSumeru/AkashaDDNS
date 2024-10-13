@@ -45,7 +45,9 @@ jobs:
             mingw-w64-x86_64-xmake
         
       - name: build cpp
-        run: C:/msys64/mingw64.exe -c "xmake -y"
+        run: |
+          C:\msys64\msys2_shell.cmd -defterm -here -no-start -mingw64
+          xmake -y
 
       - name: release
         uses: softprops/action-gh-release@v1
