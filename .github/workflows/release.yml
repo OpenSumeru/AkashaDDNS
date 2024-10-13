@@ -43,10 +43,9 @@ jobs:
           install: >-
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-xmake
-        
-      - name: build cpp
+      
+      - shell: msys2 {0}
         run: |
-          C:\msys64\msys2_shell.cmd -defterm -here -no-start -mingw64
           cd ${{github.workspace}}
           xmake -y
 
