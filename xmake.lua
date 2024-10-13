@@ -37,6 +37,8 @@ target("AkashaDDNS")
 target_end()
 
 target("AkashaDDNS-Old")
+    set_default("false")
+
     set_kind("binary")
     add_includedirs("old-cpp/include")
     add_files("old-cpp/src/*.cpp")
