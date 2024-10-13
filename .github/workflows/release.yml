@@ -41,11 +41,11 @@ jobs:
         with:
           xmake-version: xmake-io/xmake#branch@dev
       
-      - name: install openssl via chocolatey
-        run: choco upgrade openssl.light
+      - name: install MinGW via chocolatey
+        run: choco install mingw
 
       - name: use clang-cl
-        run: xmake f --toolchain=clang-cl -y
+        run: xmake f -p mingw -y
         
       - name: build cpp
         run: xmake -y
