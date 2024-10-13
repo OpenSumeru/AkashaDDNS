@@ -51,7 +51,7 @@ jobs:
       
       - shell: msys2 {0}
         run: |
-          xmake -y -vD
+          xmake -y
 
       - name: release
         uses: softprops/action-gh-release@v1
