@@ -44,10 +44,11 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-xmake
             git
+            cmake
       
       - shell: msys2 {0}
         run: |
-          xmake -y
+          xmake -y -vD
 
       - name: release
         uses: softprops/action-gh-release@v1
