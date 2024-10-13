@@ -47,7 +47,7 @@ jobs:
             cmake
             unzip
             make
-            niaja
+            ninja
       
       - shell: msys2 {0}
         run: |
