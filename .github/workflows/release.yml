@@ -46,6 +46,8 @@ jobs:
             git
             cmake
             unzip
+            make
+            niaja
       
       - shell: msys2 {0}
         run: |
