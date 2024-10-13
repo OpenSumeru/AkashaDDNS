@@ -42,7 +42,7 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-toolchain
-            xmake
+            mingw-w64-x86_64-xmake
         
       - name: build cpp
         run: C:/msys64/usr/bin/bash.exe -lc "xmake -y"
