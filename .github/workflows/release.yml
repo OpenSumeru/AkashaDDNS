@@ -46,7 +46,6 @@ jobs:
       
       - shell: msys2 {0}
         run: |
-          cd ${{github.workspace}}
           xmake -y
 
       - name: release
