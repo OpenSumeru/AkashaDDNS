@@ -35,17 +35,17 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-
-      - name: get xmake
-        uses: xmake-io/github-action-setup-xmake@v1
-        with:
-          xmake-version: xmake-io/xmake#branch@dev
       
-      - name: use MinGW
-        run: xmake f -p mingw -y -vD
+      - name: install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            xmake
         
       - name: build cpp
-        run: xmake -y
+        run: C:/msys64/usr/bin/bash.exe -lc "xmake -y"
 
       - name: release
         uses: softprops/action-gh-release@v1
