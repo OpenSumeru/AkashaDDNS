@@ -47,6 +47,7 @@ jobs:
       - name: build cpp
         run: |
           C:\msys64\msys2_shell.cmd -defterm -here -no-start -mingw64
+          cd ${{github.workspace}}
           xmake -y
 
       - name: release
