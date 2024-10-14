@@ -51,7 +51,7 @@ void CustomLogger::log(const std::string &level, const std::string &message)
     auto ms_part = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
     std::tm buf;
-#ifdef __WIN32__
+#ifdef _WIN32
     localtime_s(&buf, &in_time_t);
 #else
     localtime_r(&in_time_t, &buf);
