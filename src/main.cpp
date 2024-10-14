@@ -15,26 +15,63 @@
 #include "CustomLogger.hpp"
 #endif
 
-// 工具函数：从完整的记录名中提取域名
+#ifdef __WIN32__
+#include "ServiceWindows.hpp"
+#else
+#include "ServiceLinux.hpp"
+#endif
+
+// Utility function to extract domain from record name
 std::string extractDomain(const std::string &recordName)
 {
     size_t pos = recordName.find('.');
     if (pos == std::string::npos)
     {
-        return recordName; // 如果没有点，返回原始字符串
+        return recordName; // If no dot found, return the original string
     }
     return recordName.substr(pos + 1);
 }
 
-// 全局指针，用于在信号处理器中访问 DDNSClient 实例
-DDNSClient *g_ddnsClient = nullptr;
-
-// 信号处理器
-void signalHandler(int signum)
+// Function to display the last 10 console log entries
+void showLogs(const std::string &logFilePath, const std::vector<std::string> &keywords)
 {
-    if (g_ddnsClient)
+    std::ifstream logFile(logFilePath);
+    if (!logFile.is_open())
     {
-        g_ddnsClient->stop();
+        std::cerr << "Failed to open log file: " << logFilePath << std::endl;
+        return;
+    }
+
+    std::deque<std::string> lastLogs;
+    std::string line;
+    while (std::getline(logFile, line))
+    {
+        // Check if the line contains any of the keywords
+        bool contains = false;
+        for (const auto &kw : keywords)
+        {
+            if (line.find(kw) != std::string::npos)
+            {
+                contains = true;
+                break;
+            }
+        }
+        if (contains)
+        {
+            lastLogs.push_back(line);
+            if (lastLogs.size() > 10)
+            {
+                lastLogs.pop_front();
+            }
+        }
+    }
+
+    logFile.close();
+
+    std::cout << "Last 10 console log entries:" << std::endl;
+    for (const auto &log : lastLogs)
+    {
+        std::cout << log << std::endl;
     }
 }
 
@@ -42,21 +79,17 @@ int main(int argc, char *argv[])
 {
     try
     {
-        // 注册信号处理器
-        std::signal(SIGINT, signalHandler);
-        std::signal(SIGTERM, signalHandler);
-
-        // 解析命令行参数
-        cxxopts::Options options("AkashaDDNS", "A DDNS client supporting multiple providers");
+        // Parse command-line arguments
+        cxxopts::Options options("AkashaDDNS", "A DDNS client supporting multiple providers and service management.");
         options.add_options()("c,config", "Configuration file",
                               cxxopts::value<std::string>()->default_value("config.json"))(
             "p,provider", "DNS Provider (cloudflare, aliyun)",
             cxxopts::value<std::string>())("t,token", "API Token (for Cloudflare)", cxxopts::value<std::string>())(
             "a,access-key-id", "Access Key ID (for Aliyun)", cxxopts::value<std::string>())(
             "s,access-key-secret", "Access Key Secret (for Aliyun)", cxxopts::value<std::string>())(
-            "r,record-name", "Record name to update (e.g., www.example.com)",
-            cxxopts::value<std::string>())("e,email", "Email address for Cloudflare authentication",
-                                           cxxopts::value<std::string>())("h,help", "Print usage");
+            "r,record-name", "Record name to update (e.g., www.example.com)", cxxopts::value<std::string>())(
+            "e,email", "Email address for Cloudflare authentication", cxxopts::value<std::string>())(
+            "service", "Service command (start, stop, show)", cxxopts::value<std::string>())("h,help", "Print usage");
 
         auto result = options.parse(argc, argv);
 
@@ -66,24 +99,74 @@ int main(int argc, char *argv[])
             return 0;
         }
 
+        // Handle service commands
+        if (result.count("service"))
+        {
+            std::string serviceCommand = result["service"].as<std::string>();
+            std::string logFilePath = "AkashaDDNS.log"; // Adjust if log file path is different
+            std::vector<std::string> consoleKeywords = {"IP change", "Startup parameters"};
+
+            if (serviceCommand == "show")
+            {
+                showLogs(logFilePath, consoleKeywords);
+                return 0;
+            }
+            else if (serviceCommand == "start" || serviceCommand == "stop")
+            {
+                // Initialize logger for service management
+#ifdef USE_SPDLOG
+                std::shared_ptr<ILogger> logger = std::make_shared<SpdLogger>();
+#else
+                std::shared_ptr<ILogger> logger = std::make_shared<CustomLogger>(logFilePath, consoleKeywords);
+#endif
+
+                // Initialize service based on platform
+#ifdef __WIN32__
+                std::string serviceName = "AkashaDDNSService";
+                ServiceWindows service(serviceName, logger);
+#else
+                std::string serviceName = "akashaddns";
+                ServiceLinux service(serviceName, logger);
+#endif
+
+                if (serviceCommand == "start")
+                {
+                    service.start();
+                }
+                else if (serviceCommand == "stop")
+                {
+                    service.stop();
+                }
+
+                return 0;
+            }
+            else
+            {
+                std::cerr << "Unknown service command: " << serviceCommand << std::endl;
+                std::cout << options.help() << std::endl;
+                return -1;
+            }
+        }
+
+        // Regular application flow
         std::string configFile = result["config"].as<std::string>();
 
-        // 加载配置
+        // Load configuration
         ConfigManager configManager(configFile);
         if (!configManager.load())
         {
             return -1;
         }
 
-        // 获取配置参数，命令行参数优先
+        // Get configuration parameters, command-line arguments take precedence
         std::string providerName =
             result.count("provider") ? result["provider"].as<std::string>() : configManager.getProvider();
         std::string recordName =
             result.count("record-name") ? result["record-name"].as<std::string>() : configManager.getRecordName();
         std::string email = result.count("email") ? result["email"].as<std::string>() : configManager.getEmail();
-        int updateInterval = configManager.getUpdateInterval(); // 获取更新间隔
+        int updateInterval = configManager.getUpdateInterval(); // Get update interval
 
-        // 从 recordName 中提取 domain
+        // Extract domain from recordName
         std::string domain = extractDomain(recordName);
         if (domain.empty())
         {
@@ -107,11 +190,11 @@ int main(int argc, char *argv[])
             std::string token =
                 result.count("token") ? result["token"].as<std::string>() : configManager.getCloudflareToken();
             if (token.empty() || recordName.empty() || email.empty())
-            { // 添加 email 检查
+            { // Add email check
                 logger->error("Token, record name, or email is missing for Cloudflare.");
                 return -1;
             }
-            auto externalService = std::make_shared<CloudflareService>(token, email, logger); // 传递 email
+            auto externalService = std::make_shared<CloudflareService>(token, email, logger); // Pass email
             provider = std::make_unique<CloudflareProvider>(externalService, logger);
         }
         else if (providerName == "aliyun")
@@ -126,7 +209,7 @@ int main(int argc, char *argv[])
 
             if (accessKeyId.empty() || accessKeySecret.empty() || recordName.empty() || recordId.empty() ||
                 zoneId.empty() || email.empty())
-            { // 添加 email 检查
+            { // Add email check
                 logger->error("Access Key ID/Secret, record name, record ID, zone ID, or email is missing for Aliyun.");
                 return -1;
             }
@@ -140,14 +223,12 @@ int main(int argc, char *argv[])
             return -1;
         }
 
-        // 创建并运行客户端
+        // Create and run client
         DDNSClient client(std::move(provider), logger, updateInterval);
-        g_ddnsClient = &client; // 设置全局指针
-
         client.run(recordName, domain);
     }
     catch (const cxxopts::exceptions::exception &e)
-    { // 使用正确的命名空间前缀
+    { // Use correct namespace prefix
         std::cerr << "Error parsing options: " << e.what() << std::endl;
         return -1;
     }
