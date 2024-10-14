@@ -58,40 +58,4 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            build/mingw/x86_64/release/AkashaDDNS.exe
-
-  build-linux-rust:
-    permissions: write-all
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: build
-        run: cargo build --release
-
-      - name: release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            target/release/AkashaDDNS-rust
-  
-  build-windows-rust:
-    permissions: write-all
-    runs-on: windows-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: build
-        run: cargo build --release
-
-      - name: release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            target/release/AkashaDDNS-rust.exe
-
-  
+            build/mingw/x86_64/release/AkashaDDNS.exe  
