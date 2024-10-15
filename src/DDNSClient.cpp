@@ -1,7 +1,6 @@
 #include "DDNSClient.hpp"
 #include <chrono>
-#include <httplib.h>
-#include <nlohmann/json.hpp>
+#include <pch.hpp>
 #include <thread>
 
 using json = nlohmann::json;

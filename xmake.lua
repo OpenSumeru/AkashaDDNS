@@ -21,6 +21,8 @@ target("AkashaDDNS")
     add_includedirs("include")
     add_files("src/*.cpp")
 
+    set_pcxxheader("include/pch.hpp")
+
     if has_config("use_spdlog") then
         add_packages("spdlog")
         add_defines("USE_SPDLOG")

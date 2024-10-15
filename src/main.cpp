@@ -5,9 +5,9 @@
 #include "ConfigManager.hpp"
 #include "DDNSClient.hpp"
 #include <csignal>
-#include <cxxopts.hpp>
 #include <iostream>
 #include <memory>
+#include <pch.hpp>
 
 #ifdef USE_SPDLOG
 #include "SpdLogger.hpp"
