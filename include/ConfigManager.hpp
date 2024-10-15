@@ -1,7 +1,7 @@
 #ifndef CONFIG_MANAGER_HPP
 #define CONFIG_MANAGER_HPP
 
-#include <pch.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 
 class ConfigManager

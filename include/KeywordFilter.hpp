@@ -1,7 +1,7 @@
 #ifndef KEYWORD_FILTER_HPP
 #define KEYWORD_FILTER_HPP
 
-#include <pch.hpp>
+#include <spdlog/sinks/sink.h>
 #include <string>
 #include <vector>
 

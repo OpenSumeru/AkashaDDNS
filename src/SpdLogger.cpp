@@ -3,7 +3,8 @@
 #include "SpdLogger.hpp"
 #include "KeywordFilter.hpp"
 #include <iostream>
-#include <pch.hpp>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <string>
 #include <vector>
 
