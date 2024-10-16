@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-#ifdef __WIN32__
+#ifdef _WIN32
 
 class WindowsSystemService : public ISystemService
 {
@@ -27,6 +27,6 @@ class WindowsSystemService : public ISystemService
     std::string m_configFilePath;
 };
 
-#endif // __WIN32__
+#endif // _WIN32
 
 #endif

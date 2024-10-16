@@ -1,5 +1,5 @@
 // src/WindowsSystemService.cpp
-#ifdef __WIN32__
+#ifdef _WIN32
 
 #include "WindowsSystemService.hpp"
 #include <cstdlib>
@@ -186,4 +186,4 @@ void WindowsSystemService::show()
     }
 }
 
-#endif // __WIN32__
+#endif // _WIN32

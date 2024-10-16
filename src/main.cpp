@@ -15,7 +15,7 @@
 #include "CustomLogger.hpp"
 #endif
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #include "WindowsSystemService.hpp"
 #endif
 #ifdef __linux__
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
             // Instantiate the appropriate system service
             std::unique_ptr<ISystemService> systemService;
 
-#ifdef __WIN32__
+#ifdef _WIN32
             systemService = std::make_unique<WindowsSystemService>(logger);
 #else
             systemService = std::make_unique<LinuxSystemService>(logger);
