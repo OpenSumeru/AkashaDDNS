@@ -1,5 +1,4 @@
 add_rules("mode.release", "mode.debug")
-add_rules("plugin.compile_commands.autoupdate", {outputdir = "./"})
 
 option("use_spdlog")
     set_description("Enable spdlog for logging")
