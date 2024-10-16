@@ -15,21 +15,28 @@
 #include "CustomLogger.hpp"
 #endif
 
-// 工具函数：从完整的记录名中提取域名
+#ifdef __WIN32__
+#include "WindowsSystemService.hpp"
+#endif
+#ifdef __linux__
+#include "LinuxSystemService.hpp"
+#endif
+
+// Utility function to extract domain from record name
 std::string extractDomain(const std::string &recordName)
 {
     size_t pos = recordName.find('.');
     if (pos == std::string::npos)
     {
-        return recordName; // 如果没有点，返回原始字符串
+        return recordName; // If no dot found, return the original string
     }
     return recordName.substr(pos + 1);
 }
 
-// 全局指针，用于在信号处理器中访问 DDNSClient 实例
+// Global pointer to access DDNSClient in the signal handler
 DDNSClient *g_ddnsClient = nullptr;
 
-// 信号处理器
+// Signal handler
 void signalHandler(int signum)
 {
     if (g_ddnsClient)
@@ -42,11 +49,76 @@ int main(int argc, char *argv[])
 {
     try
     {
-        // 注册信号处理器
+        // Register signal handlers
         std::signal(SIGINT, signalHandler);
         std::signal(SIGTERM, signalHandler);
 
-        // 解析命令行参数
+        // Check if the first argument is 'service'
+        if (argc > 1 && std::string(argv[1]) == "service")
+        {
+            if (argc < 3)
+            {
+                std::cerr << "Service command requires an action: enable, disable, start, stop, show" << std::endl;
+                return -1;
+            }
+
+            std::string action = argv[2];
+
+            // Define console keywords
+            std::vector<std::string> consoleKeywords = {"IP change", "Startup parameters"};
+
+            // Create logger
+#ifdef USE_SPDLOG
+            std::shared_ptr<ILogger> logger = std::make_shared<SpdLogger>();
+#else
+            std::shared_ptr<ILogger> logger = std::make_shared<CustomLogger>("AkashaDDNS.log", consoleKeywords);
+#endif
+
+            // Instantiate the appropriate system service
+            std::unique_ptr<ISystemService> systemService;
+
+#ifdef __WIN32__
+            systemService = std::make_unique<WindowsSystemService>(logger);
+#else
+            systemService = std::make_unique<LinuxSystemService>(logger);
+#endif
+
+            if (action == "enable")
+            {
+                if (argc < 4)
+                {
+                    std::cerr << "Service enable requires a config file path." << std::endl;
+                    return -1;
+                }
+                std::string configFilePath = argv[3];
+                systemService->enable(configFilePath);
+            }
+            else if (action == "disable")
+            {
+                systemService->disable();
+            }
+            else if (action == "start")
+            {
+                systemService->start();
+            }
+            else if (action == "stop")
+            {
+                systemService->stop();
+            }
+            else if (action == "show")
+            {
+                systemService->show();
+            }
+            else
+            {
+                std::cerr << "Unknown service action: " << action << std::endl;
+                return -1;
+            }
+
+            return 0;
+        }
+
+        // Parse command-line arguments
         cxxopts::Options options("AkashaDDNS", "A DDNS client supporting multiple providers");
         options.add_options()("c,config", "Configuration file",
                               cxxopts::value<std::string>()->default_value("config.json"))(
@@ -68,22 +140,22 @@ int main(int argc, char *argv[])
 
         std::string configFile = result["config"].as<std::string>();
 
-        // 加载配置
+        // Load configuration
         ConfigManager configManager(configFile);
         if (!configManager.load())
         {
             return -1;
         }
 
-        // 获取配置参数，命令行参数优先
+        // Get configuration parameters, command-line arguments take precedence
         std::string providerName =
             result.count("provider") ? result["provider"].as<std::string>() : configManager.getProvider();
         std::string recordName =
             result.count("record-name") ? result["record-name"].as<std::string>() : configManager.getRecordName();
         std::string email = result.count("email") ? result["email"].as<std::string>() : configManager.getEmail();
-        int updateInterval = configManager.getUpdateInterval(); // 获取更新间隔
+        int updateInterval = configManager.getUpdateInterval(); // Get update interval
 
-        // 从 recordName 中提取 domain
+        // Extract domain from recordName
         std::string domain = extractDomain(recordName);
         if (domain.empty())
         {
@@ -95,7 +167,6 @@ int main(int argc, char *argv[])
 #ifdef USE_SPDLOG
         std::shared_ptr<ILogger> logger = std::make_shared<SpdLogger>();
 #else
-        // Define console keywords
         std::vector<std::string> consoleKeywords = {"IP change", "Startup parameters"};
         std::shared_ptr<ILogger> logger = std::make_shared<CustomLogger>("AkashaDDNS.log", consoleKeywords);
 #endif
@@ -107,11 +178,11 @@ int main(int argc, char *argv[])
             std::string token =
                 result.count("token") ? result["token"].as<std::string>() : configManager.getCloudflareToken();
             if (token.empty() || recordName.empty() || email.empty())
-            { // 添加 email 检查
+            { // Add email check
                 logger->error("Token, record name, or email is missing for Cloudflare.");
                 return -1;
             }
-            auto externalService = std::make_shared<CloudflareService>(token, email, logger); // 传递 email
+            auto externalService = std::make_shared<CloudflareService>(token, email, logger); // Pass email
             provider = std::make_unique<CloudflareProvider>(externalService, logger);
         }
         else if (providerName == "aliyun")
@@ -126,7 +197,7 @@ int main(int argc, char *argv[])
 
             if (accessKeyId.empty() || accessKeySecret.empty() || recordName.empty() || recordId.empty() ||
                 zoneId.empty() || email.empty())
-            { // 添加 email 检查
+            { // Add email check
                 logger->error("Access Key ID/Secret, record name, record ID, zone ID, or email is missing for Aliyun.");
                 return -1;
             }
@@ -140,14 +211,14 @@ int main(int argc, char *argv[])
             return -1;
         }
 
-        // 创建并运行客户端
+        // Create and run client
         DDNSClient client(std::move(provider), logger, updateInterval);
-        g_ddnsClient = &client; // 设置全局指针
+        g_ddnsClient = &client; // Set global pointer
 
         client.run(recordName, domain);
     }
     catch (const cxxopts::exceptions::exception &e)
-    { // 使用正确的命名空间前缀
+    { // Use correct namespace prefix
         std::cerr << "Error parsing options: " << e.what() << std::endl;
         return -1;
     }
