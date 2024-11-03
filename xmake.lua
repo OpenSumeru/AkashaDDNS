@@ -32,6 +32,9 @@ target("AkashaDDNS")
     if is_plat("windows") then
         add_cxxflags("/utf-8")
     end
+    if is_subhost("msys") then
+        add_ldflags("-static-libstdc++", "-static-libgcc", {force = true})
+    end
 
 target_end()
 
